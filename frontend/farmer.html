@@ -453,7 +453,7 @@
   <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:0.82rem;color:var(--text-muted)">
     <span>📍</span>
     <span id="field-loc-text">Waiting for GPS…</span>
-    <button class="btn btn-ghost btn-sm" onclick="loadFieldIntel()" style="margin-left:auto;font-size:0.75rem">🔄 Refresh</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadFieldIntel(true)" style="margin-left:auto;font-size:0.75rem">🔄 Refresh</button>
   </div>
 
   <div id="field-loading" style="text-align:center;padding:40px;color:var(--text-muted)">
@@ -901,9 +901,9 @@ async function submitFollowUp() {
 /* ── My Field Intelligence ── */
 let _fieldLoaded = false;
 
-async function loadFieldIntel() {
-  if (_fieldLoaded) return;   // already loaded this session — GPS won't change
-  _fieldLoaded = false;       // allow manual refresh
+async function loadFieldIntel(force) {
+  if (_fieldLoaded && !force) return;  // skip if already loaded unless forced
+  _fieldLoaded = false;
   const loading = document.getElementById('field-loading');
   const data    = document.getElementById('field-data');
   const locTxt  = document.getElementById('field-loc-text');
@@ -1211,13 +1211,14 @@ function buildSummary() {
   if (!el) return;
   const L = LABELS[currentLanguage] || LABELS.en;
   const rows = [
-    ['🌾', L['lbl-crop']||'Crop',       form.crop||'—'],
-    ['📅', L['lbl-stage']||'Stage',     form.growth_stage||'—'],
-    ['🔍', L['lbl-symptom']||'Symptom', form.symptom_group||'—'],
-    ['⚠️', L['lbl-severity']||'Severity', form.severity||'—'],
-    ['🌧️', L['lbl-rain']||'Rain',       form.recent_rain||'—'],
-    ['📍', 'Location',                  `${form.lat.toFixed(2)}, ${form.lon.toFixed(2)}`],
-    ['📷', 'Image',                     selectedFile ? selectedFile.name : 'None'],
+    ['🌾', L['lbl-crop']||'Crop',         form.crop||'—'],
+    ['📅', L['lbl-stage']||'Stage',        form.growth_stage||'—'],
+    ['🔍', L['lbl-symptom']||'Symptom',    form.symptom_group||'—'],
+    ['⚠️', L['lbl-severity']||'Severity',  form.severity||'—'],
+    ['🗺️', L['lbl-area']||'Affected Area', form.affected_area_band||'—'],
+    ['🌧️', L['lbl-rain']||'Rain',          form.recent_rain||'—'],
+    ['📍', 'Location',                      `${form.lat.toFixed(2)}, ${form.lon.toFixed(2)}`],
+    ['📷', 'Image',                          selectedFile ? selectedFile.name : 'None'],
   ];
   el.innerHTML = rows.map(([i,k,v]) =>
     `<div class="sum-row"><span style="color:var(--text-muted)">${i} ${k}</span><span style="font-weight:700">${v}</span></div>`
@@ -1232,17 +1233,18 @@ window.submitTriage = async function() {
   if (lbl) lbl.textContent = '⏳ Submitting…';
   showLoading();
   const fd = new FormData();
-  fd.append('crop',           form.crop||'unknown');
-  fd.append('growth_stage',   form.growth_stage||'vegetative');
-  fd.append('symptom_group',  form.symptom_group||'leaf_spots');
-  fd.append('severity',       form.severity||'unknown');
-  fd.append('recent_rain',    form.recent_rain||'unknown');
-  fd.append('lat',            form.lat);
-  fd.append('lon',            form.lon);
-  fd.append('language',       currentLanguage);
-  fd.append('client_event_id', crypto.randomUUID ? crypto.randomUUID() : `e${Date.now()}`);
-  if (form.trap_count) fd.append('trap_count', form.trap_count);
-  if (selectedFile) fd.append('image', selectedFile, selectedFile.name);
+  fd.append('crop',               form.crop||'unknown');
+  fd.append('growth_stage',       form.growth_stage||'vegetative');
+  fd.append('symptom_group',      form.symptom_group||'leaf_spots');
+  fd.append('severity',           form.severity||'unknown');
+  fd.append('recent_rain',        form.recent_rain||'unknown');
+  fd.append('lat',                form.lat);
+  fd.append('lon',                form.lon);
+  fd.append('language',           currentLanguage);
+  fd.append('client_event_id',    crypto.randomUUID ? crypto.randomUUID() : `e${Date.now()}`);
+  if (form.affected_area_band) fd.append('affected_area_band', form.affected_area_band);
+  if (form.trap_count)         fd.append('trap_count', form.trap_count);
+  if (selectedFile)            fd.append('image', selectedFile, selectedFile.name);
   try {
     const data = await API.post('/api/v1/observations', fd, true);
     hideLoading();

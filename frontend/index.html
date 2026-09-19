@@ -45,7 +45,7 @@
       <button class="lang-btn" data-lang="kn" onclick="setLang('kn')">ಕನ್ನಡ</button>
       <button class="lang-btn" data-lang="hi" onclick="setLang('hi')">हिंदी</button>
     </div>
-    <a href="/officer" class="btn btn-primary btn-sm" style="margin-left:10px;" data-i18n="nav.login">Officer Login</a>
+    <a href="/login" class="btn btn-primary btn-sm" style="margin-left:10px;" data-i18n="nav.login">Login</a>
   </div>
 </nav>
 
@@ -81,8 +81,8 @@
     <p data-i18n="hero.sub">Evidence-led crop disease triage for Karnataka farmers.<br>AI + weather + field context combined.</p>
 
     <div class="hero-cta">
-      <a href="/farmer" class="btn btn-primary btn-lg" data-i18n="hero.cta1">📷 Scan Crop</a>
-      <a href="/officer" class="btn btn-ghost btn-lg" data-i18n="hero.cta2">👨‍💼 Officer Dashboard</a>
+      <a href="/login" class="btn btn-primary btn-lg" data-i18n="hero.cta1">📷 Scan Crop</a>
+      <a href="/login" class="btn btn-ghost btn-lg" data-i18n="hero.cta2">👨‍💼 Officer Dashboard</a>
     </div>
   </div>
 </section>
@@ -111,9 +111,9 @@
     </div>
 
     <div class="feature-card">
-      <div class="feature-icon">📋</div>
-      <h3 data-i18n="feat4.title">Follow-Up Tracking</h3>
-      <p data-i18n="feat4.desc">Officers log outcomes; the system learns from real-world resolution data over time.</p>
+      <div class="feature-icon">🌍</div>
+      <h3 data-i18n="feat4.title">Field Intelligence</h3>
+      <p data-i18n="feat4.desc">Live soil data, crop recommendations &amp; disease hotspots from SoilGrids + Open-Meteo for your GPS location.</p>
     </div>
 
   </div>
@@ -122,7 +122,7 @@
 <!-- ════════════════════════ ACTION CARDS ROW ════════════════════════════ -->
 <div class="action-cards">
 
-  <a href="/farmer" class="action-card">
+  <a href="/login" class="action-card">
     <div class="ac-icon">📷</div>
     <h3 data-i18n="ac1.title">Scan Crop</h3>
     <p data-i18n="ac1.desc">Upload or capture a photo of affected leaves for instant AI analysis.</p>
@@ -134,16 +134,16 @@
     <p data-i18n="ac2.desc">See confidence scores, evidence breakdown, and recommended actions.</p>
   </a>
 
-  <a href="/officer" class="action-card">
+  <a href="/login" class="action-card">
     <div class="ac-icon">🗂️</div>
     <h3 data-i18n="ac3.title">Officer Queue</h3>
     <p data-i18n="ac3.desc">Review escalated cases, add expert notes, and close observations.</p>
   </a>
 
-  <a href="/guide" class="action-card">
-    <div class="ac-icon">📚</div>
-    <h3 data-i18n="ac4.title">Field Guide</h3>
-    <p data-i18n="ac4.desc">Offline pest & disease reference with treatment protocols for Karnataka crops.</p>
+  <a href="/login" class="action-card">
+    <div class="ac-icon">🌍</div>
+    <h3 data-i18n="ac4.title">Field Intelligence</h3>
+    <p data-i18n="ac4.desc">Soil health, crop suitability &amp; regional disease hotspots for your GPS location.</p>
   </a>
 
 </div>
@@ -154,6 +154,8 @@
   <div class="footer-partners">
     <span>Powered by</span>
     <span style="color:var(--green);font-weight:700;">Open-Meteo</span>
+    <span>·</span>
+    <span style="color:var(--green);font-weight:700;">SoilGrids ISRIC</span>
     <span>·</span>
     <span style="color:var(--green);font-weight:700;">PlantVillage</span>
     <span>·</span>
