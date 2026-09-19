@@ -203,6 +203,30 @@
     </div>
   </div>
 
+  <!-- ── Regional Hotspot Map ──────────────────────────────── -->
+  <div class="section">
+    <div class="page-header" style="margin-bottom:12px">
+      <h3>🔥 Regional Disease Hotspots</h3>
+      <p style="font-size:0.82rem">Disease clusters from reported cases — last 30 days. Updated live from DB.</p>
+    </div>
+
+    <!-- District summary bar chart (visual) -->
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">📍 BY DISTRICT</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadHotspots()" style="font-size:0.72rem">🔄 Refresh</button>
+      </div>
+      <div id="district-bars">
+        <div style="text-align:center;color:var(--text-dim);padding:16px;font-size:0.82rem">Loading district data…</div>
+      </div>
+    </div>
+
+    <!-- Cluster cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px" id="hotspot-cluster-grid">
+      <div style="text-align:center;color:var(--text-dim);padding:24px;font-size:0.82rem;grid-column:1/-1">Loading clusters…</div>
+    </div>
+  </div>
+
   <!-- ── KVK Contacts ───────────────────────────────────────── -->
   <div class="section">
     <div class="page-header" style="margin-bottom:12px">
@@ -471,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadStats();
   loadQueue();
   loadMarketPrices();
+  loadHotspots();
 });
 
 /* ── Stats ────────────────────────────────────────────────── */
