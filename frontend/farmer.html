@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>PestPulse – Farmer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <style>
+    /* ── Tabs ── */
+    .tab-bar {
+      display:flex;gap:0;border-bottom:2px solid var(--border);
+      background:var(--bg-card);position:sticky;top:62px;z-index:50;
+    }
+    .tab-btn {
+      flex:1;padding:12px 6px;font-size:0.78rem;font-weight:700;
+      background:none;border:none;cursor:pointer;color:var(--text-muted);
+      border-bottom:2px solid transparent;margin-bottom:-2px;
+      transition:var(--transition);display:flex;flex-direction:column;
+      align-items:center;gap:3px;
+    }
+    .tab-btn .tab-em { font-size:1.2rem; }
+    .tab-btn.active { color:var(--green);border-bottom-color:var(--green); }
+    .tab-pane { display:none;padding:20px 16px; }
+    .tab-pane.active { display:block; }
+
+    /* ── AI detected banner ── */
+    .ai-banner {
+      background:rgba(0,230,118,0.08);border:1px solid var(--green-border);
+      border-radius:14px;padding:14px 16px;margin-bottom:16px;
+    }
+    .ai-banner h3 { font-size:0.85rem;color:var(--green);margin-bottom:8px; }
+    .ai-tag {
+      display:inline-flex;align-items:center;gap:5px;
+      background:var(--green-glow);border:1px solid var(--green);
+      color:var(--green);border-radius:20px;padding:4px 12px;
+      font-size:0.78rem;font-weight:700;margin:3px;
+    }
+    /* ── Known issues quick-select ── */
+    .known-issues {
+      display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;
+    }
+    .issue-chip {
+      background:var(--bg-card-2);border:1.5px solid var(--border);
+      border-radius:20px;padding:6px 14px;font-size:0.78rem;font-weight:600;
+      color:var(--text-muted);cursor:pointer;transition:var(--transition);
+    }
+    .issue-chip:hover { border-color:var(--green-border);color:var(--green); }
+    .issue-chip.selected { border-color:var(--green);background:var(--green-glow);color:var(--green); }
+    .issue-chip .chip-em { margin-right:4px; }
+
+    /* ── Step wizard ── */
+    .step-nav { display:flex;gap:10px;margin-top:20px; }
+    .step-nav .btn { flex:1; }
+
+    /* ── Severity grid ── */
+    .sev-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px; }
+    .sev-btn {
+      display:flex;flex-direction:column;align-items:center;gap:5px;
+      background:var(--bg-card-2);border:2px solid var(--border);
+      border-radius:12px;padding:12px 4px;cursor:pointer;
+      transition:var(--transition);text-align:center;
+    }
+    .sev-btn .sev-em { font-size:1.8rem; }
+    .sev-btn .sev-lbl { font-size:0.68rem;font-weight:700;color:var(--text-muted); }
+    .sev-btn.selected { border-color:var(--green);background:var(--green-glow); }
+    .sev-btn.selected .sev-lbl { color:var(--green); }
+    .sev-btn.red.selected { border-color:var(--red);background:var(--red-glow); }
+    .sev-btn.amber.selected { border-color:var(--amber);background:var(--amber-glow); }
+
+    /* ── Rain ── */
+    .rain-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+    .rain-btn {
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      background:var(--bg-card-2);border:2px solid var(--border);
+      border-radius:12px;padding:16px 8px;cursor:pointer;transition:var(--transition);
+      font-size:0.82rem;font-weight:700;color:var(--text-muted);
+    }
+    .rain-btn .rain-em { font-size:2rem; }
+    .rain-btn.selected { border-color:var(--green);background:var(--green-glow);color:var(--green); }
+
+    /* ── Summary ── */
+    .sum-row {
+      display:flex;justify-content:space-between;align-items:center;
+      padding:10px 0;border-bottom:1px solid var(--border);font-size:0.86rem;
+    }
+    .sum-row:last-child { border-bottom:none; }
+
+    /* ── History ── */
+    .hist-card {
+      background:var(--bg-card-2);border:1px solid var(--border);
+      border-radius:12px;padding:14px 16px;margin-bottom:10px;
+      display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+      transition:var(--transition);
+    }
+    .hist-card:hover { border-color:var(--green-border); }
+
+    /* ── KVK card ── */
+    .kvk-card {
+      background:var(--bg-card-2);border:1px solid var(--border);border-radius:12px;
+      padding:14px 16px;margin-bottom:10px;display:flex;
+      justify-content:space-between;align-items:center;
+    }
+    .kvk-name { font-weight:700;font-size:0.9rem; }
+    .kvk-loc  { font-size:0.75rem;color:var(--text-muted);margin-top:2px; }
+    .kvk-actions { display:flex;gap:8px; }
+
+    /* ── Tips ── */
+    .tip-card {
+      background:var(--bg-card-2);border:1px solid var(--border);
+      border-radius:12px;padding:14px 16px;margin-bottom:10px;
+    }
+    .tip-title { font-weight:700;font-size:0.88rem;margin-bottom:4px; }
+    .tip-body  { font-size:0.78rem;color:var(--text-muted);line-height:1.6; }
+
+    /* ── Section header ── */
+    .sec-hdr {
+      font-size:0.7rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.08em;color:var(--text-muted);
+      display:flex;align-items:center;gap:6px;margin-bottom:10px;
+    }
+
+    /* ── Upload zone ── */
+    .upload-preview { position:relative;margin-bottom:12px; }
+    .upload-preview img { width:100%;border-radius:12px;max-height:260px;object-fit:cover; }
+    .upload-preview .remove-btn {
+      position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);
+      border:none;color:white;width:28px;height:28px;border-radius:50%;
+      cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;
+    }
+    .infer-card {
+      background:var(--bg-card-2);border:1px solid var(--green-border);
+      border-radius:12px;padding:14px 16px;margin-bottom:12px;
+    }
+    .infer-card .disease-name { font-size:1.05rem;font-weight:800;color:var(--text); }
+    .infer-card .conf-bar-wrap { height:6px;background:var(--border);border-radius:4px;margin-top:8px; }
+    .infer-card .conf-bar { height:6px;background:var(--green);border-radius:4px; }
+    .disclaimer {
+      font-size:0.72rem;color:var(--amber);background:var(--amber-glow);
+      border:1px solid rgba(245,158,11,0.2);border-radius:8px;
+      padding:8px 12px;margin-top:8px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/login" class="nav-logo" style="text-decoration:none">
+    <span class="logo-dot">🌿</span> PestPulse
+  </a>
+  <div class="nav-links">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" data-lang="kn" onclick="setLang('kn')">ಕನ್ನಡ</button>
+      <button class="lang-btn" data-lang="hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+    <a href="/officer" class="btn btn-ghost btn-sm" style="margin-left:8px" id="nav-officer">Officer</a>
+  </div>
+</nav>
+
+<!-- Weather freshness strip -->
+<div id="weather-strip" style="
+  background:var(--bg-card-2);border-bottom:1px solid var(--border);
+  padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:0.75rem;
+  color:var(--text-muted);min-height:32px;">
+  <span>🌡️</span>
+  <span id="weather-text">Loading weather…</span>
+  <span id="weather-badge" style="
+    margin-left:auto;border-radius:20px;padding:2px 10px;font-size:0.68rem;
+    font-weight:700;background:var(--border);color:var(--text-dim)">—</span>
+</div>
+
+<!-- Tab bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="scan" onclick="switchTab('scan')">
+    <span class="tab-em">📷</span><span class="tab-lbl" data-ik="tab.scan">Scan</span>
+  </button>
+  <button class="tab-btn" data-tab="history" onclick="switchTab('history')">
+    <span class="tab-em">📋</span><span class="tab-lbl" data-ik="tab.history">My Reports</span>
+  </button>
+  <button class="tab-btn" data-tab="followup" onclick="switchTab('followup')">
+    <span class="tab-em">🔁</span><span class="tab-lbl" data-ik="tab.followup">Follow-up</span>
+  </button>
+  <button class="tab-btn" data-tab="kvk" onclick="switchTab('kvk')">
+    <span class="tab-em">📞</span><span class="tab-lbl" data-ik="tab.kvk">KVK Helpline</span>
+  </button>
+  <button class="tab-btn" data-tab="tips" onclick="switchTab('tips')">
+    <span class="tab-em">💡</span><span class="tab-lbl" data-ik="tab.tips">Tips</span>
+  </button>
+</div>
+
+<!-- ══════════════════════ TAB 1: SCAN ══════════════════════ -->
+<div class="tab-pane active" id="tab-scan" style="max-width:640px;margin:0 auto">
+
+  <!-- Step indicator -->
+  <div class="steps" id="step-indicator">
+    <div class="step-item active" id="si-1">
+      <div class="step-circle">1</div>
+      <div class="step-label" id="sl-1">Photo</div>
+    </div>
+    <div class="step-item" id="si-2">
+      <div class="step-circle">2</div>
+      <div class="step-label" id="sl-2">Confirm</div>
+    </div>
+    <div class="step-item" id="si-3">
+      <div class="step-circle">3</div>
+      <div class="step-label" id="sl-3">Submit</div>
+    </div>
+  </div>
+
+  <!-- ── Step 1: Photo + AI scan ── -->
+  <div id="step-1">
+    <div class="page-header">
+      <h2 id="s1-title">📷 Upload Leaf Photo</h2>
+      <p id="s1-sub">Snap a close-up. AI will instantly detect the disease.</p>
+    </div>
+
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <div class="upload-icon">📷</div>
+      <p><strong id="upload-cta">Tap to capture or upload</strong></p>
+      <p style="font-size:0.75rem;color:var(--text-dim)" id="upload-sub">JPG · PNG · WEBP · Camera</p>
+    </div>
+
+    <div class="upload-preview hidden" id="upload-preview">
+      <img id="preview-img" src="" alt=""/>
+      <button class="remove-btn" onclick="removeImage()">✕</button>
+    </div>
+    <input type="file" id="file-input" accept="image/*" capture="camera" style="display:none" onchange="onFileSelected(event)"/>
+
+    <!-- AI inference result -->
+    <div id="infer-result" style="margin-top:12px"></div>
+
+    <div class="step-nav">
+      <button class="btn btn-primary btn-lg w-100" id="step1-next" onclick="goStep(2)" disabled>
+        <span id="step1-next-lbl">Next →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Step 2: Confirm / correct details ── -->
+  <div id="step-2" class="hidden">
+    <div class="page-header">
+      <h2 id="s2-title">✏️ Confirm Details</h2>
+      <p id="s2-sub">AI pre-filled what it detected. Correct if needed.</p>
+    </div>
+
+    <!-- Voice mic -->
+    <button class="mic-btn" id="mic-btn" onclick="toggleMic()" style="margin-bottom:16px">
+      <span>🎤</span> <span id="mic-btn-lbl">Speak</span>
+    </button>
+    <div class="mic-status" id="mic-status" style="display:none;margin-bottom:12px"></div>
+
+    <!-- AI banner -->
+    <div class="ai-banner hidden" id="ai-banner">
+      <h3>🤖 AI Detected <span id="ai-conf-lbl" style="font-weight:400;font-size:0.78rem"></span></h3>
+      <div id="ai-tags"></div>
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px" id="ai-disc">Tap options below to change anything.</p>
+    </div>
+
+    <!-- CROP -->
+    <div style="margin-bottom:18px">
+      <div class="sec-hdr">🌾 <span id="lbl-crop">CROP TYPE</span></div>
+      <div class="icon-grid" id="crop-grid">
+        <div class="icon-option" data-val="tomato"      onclick="pick('crop',this)"><span class="icon-em">🍅</span><span class="icon-label" data-ik="crop.tomato">Tomato</span></div>
+        <div class="icon-option" data-val="potato"      onclick="pick('crop',this)"><span class="icon-em">🥔</span><span class="icon-label" data-ik="crop.potato">Potato</span></div>
+        <div class="icon-option" data-val="corn_maize"  onclick="pick('crop',this)"><span class="icon-em">🌽</span><span class="icon-label" data-ik="crop.corn_maize">Corn</span></div>
+        <div class="icon-option" data-val="grape"       onclick="pick('crop',this)"><span class="icon-em">🍇</span><span class="icon-label" data-ik="crop.grape">Grape</span></div>
+        <div class="icon-option" data-val="bell_pepper" onclick="pick('crop',this)"><span class="icon-em">🫑</span><span class="icon-label" data-ik="crop.bell_pepper">Pepper</span></div>
+        <div class="icon-option" data-val="strawberry"  onclick="pick('crop',this)"><span class="icon-em">🍓</span><span class="icon-label" data-ik="crop.strawberry">Strawberry</span></div>
+        <div class="icon-option" data-val="orange"      onclick="pick('crop',this)"><span class="icon-em">🍊</span><span class="icon-label" data-ik="crop.orange">Orange</span></div>
+        <div class="icon-option" data-val="soybean"     onclick="pick('crop',this)"><span class="icon-em">🫘</span><span class="icon-label" data-ik="crop.soybean">Soybean</span></div>
+        <div class="icon-option" data-val="apple"       onclick="pick('crop',this)"><span class="icon-em">🍎</span><span class="icon-label" data-ik="crop.apple">Apple</span></div>
+        <div class="icon-option" data-val="other"       onclick="pick('crop',this)"><span class="icon-em">🌱</span><span class="icon-label" data-ik="crop.other">Other</span></div>
+      </div>
+    </div>
+
+    <!-- KNOWN ISSUES for selected crop (5 chips, dynamically shown) -->
+    <div id="known-issues-section" style="margin-bottom:18px;display:none">
+      <div class="sec-hdr">⚡ <span id="lbl-known">COMMON ISSUES FOR THIS CROP</span></div>
+      <div class="known-issues" id="known-issues-chips"></div>
+    </div>
+
+    <!-- GROWTH STAGE -->
+    <div style="margin-bottom:18px">
+      <div class="sec-hdr">📅 <span id="lbl-stage">GROWTH STAGE</span></div>
+      <div class="icon-grid" id="stage-grid">
+        <div class="icon-option" data-val="seedling"   onclick="pick('growth_stage',this)"><span class="icon-em">🌱</span><span class="icon-label" data-ik="stage.seedling">Seedling</span></div>
+        <div class="icon-option" data-val="vegetative" onclick="pick('growth_stage',this)"><span class="icon-em">🌿</span><span class="icon-label" data-ik="stage.vegetative">Vegetative</span></div>
+        <div class="icon-option" data-val="flowering"  onclick="pick('growth_stage',this)"><span class="icon-em">🌸</span><span class="icon-label" data-ik="stage.flowering">Flowering</span></div>
+        <div class="icon-option" data-val="fruiting"   onclick="pick('growth_stage',this)"><span class="icon-em">🍒</span><span class="icon-label" data-ik="stage.fruiting">Fruiting</span></div>
+        <div class="icon-option" data-val="maturity"   onclick="pick('growth_stage',this)"><span class="icon-em">🌾</span><span class="icon-label" data-ik="stage.maturity">Maturity</span></div>
+      </div>
+    </div>
+
+    <!-- SYMPTOM -->
+    <div style="margin-bottom:18px">
+      <div class="sec-hdr">🔍 <span id="lbl-symptom">WHAT DO YOU SEE?</span></div>
+      <div class="icon-grid" id="symptom-grid">
+        <div class="icon-option" data-val="leaf_spots"       onclick="pick('symptom_group',this)"><span class="icon-em">🟤</span><span class="icon-label" data-ik="sym.leaf_spots">Leaf Spots</span></div>
+        <div class="icon-option" data-val="yellowing"        onclick="pick('symptom_group',this)"><span class="icon-em">💛</span><span class="icon-label" data-ik="sym.yellowing">Yellowing</span></div>
+        <div class="icon-option" data-val="wilting"          onclick="pick('symptom_group',this)"><span class="icon-em">🥀</span><span class="icon-label" data-ik="sym.wilting">Wilting</span></div>
+        <div class="icon-option" data-val="leaf_curling"     onclick="pick('symptom_group',this)"><span class="icon-em">🌀</span><span class="icon-label" data-ik="sym.leaf_curling">Leaf Curling</span></div>
+        <div class="icon-option" data-val="holes_or_chewing" onclick="pick('symptom_group',this)"><span class="icon-em">🕳️</span><span class="icon-label" data-ik="sym.holes">Holes / Eaten</span></div>
+        <div class="icon-option" data-val="powder_coating"   onclick="pick('symptom_group',this)"><span class="icon-em">⬜</span><span class="icon-label" data-ik="sym.powder">White Powder</span></div>
+        <div class="icon-option" data-val="stem_rot"         onclick="pick('symptom_group',this)"><span class="icon-em">🔴</span><span class="icon-label" data-ik="sym.stem_rot">Stem Rot</span></div>
+        <div class="icon-option" data-val="none_visible"     onclick="pick('symptom_group',this)"><span class="icon-em">✅</span><span class="icon-label" data-ik="sym.healthy">Looks Healthy</span></div>
+      </div>
+    </div>
+
+    <!-- SEVERITY -->
+    <div style="margin-bottom:18px">
+      <div class="sec-hdr">⚠️ <span id="lbl-severity">HOW MANY PLANTS AFFECTED?</span></div>
+      <div class="sev-grid">
+        <div class="sev-btn red"   data-val="almost_all" onclick="pickSev(this)"><span class="sev-em">🔴</span><span class="sev-lbl" data-ik="sev.almost_all">Almost All</span></div>
+        <div class="sev-btn amber" data-val="many"       onclick="pickSev(this)"><span class="sev-em">🟠</span><span class="sev-lbl" data-ik="sev.many">Many</span></div>
+        <div class="sev-btn"       data-val="few"        onclick="pickSev(this)"><span class="sev-em">🟡</span><span class="sev-lbl" data-ik="sev.few">A Few</span></div>
+        <div class="sev-btn"       data-val="unknown"    onclick="pickSev(this)"><span class="sev-em">❓</span><span class="sev-lbl" data-ik="sev.unknown">Not Sure</span></div>
+      </div>
+    </div>
+
+    <!-- AFFECTED AREA OF FIELD -->
+    <div style="margin-bottom:18px">
+      <div class="sec-hdr">🌾 <span id="lbl-area">HOW MUCH OF THE FIELD IS AFFECTED?</span></div>
+      <div class="icon-grid" id="area-grid">
+        <div class="icon-option" data-val="few_plants"    onclick="pick('affected_area_band',this)"><span class="icon-em">🌱</span><span class="icon-label" data-ik="area.few_plants">A Few Plants</span></div>
+        <div class="icon-option" data-val="one_part"      onclick="pick('affected_area_band',this)"><span class="icon-em">🔲</span><span class="icon-label" data-ik="area.one_part">One Part</span></div>
+        <div class="icon-option" data-val="much_of_field" onclick="pick('affected_area_band',this)"><span class="icon-em">🟧</span><span class="icon-label" data-ik="area.much_of_field">Much of Field</span></div>
+        <div class="icon-option" data-val="not_sure"      onclick="pick('affected_area_band',this)"><span class="icon-em">❓</span><span class="icon-label" data-ik="area.not_sure">Not Sure</span></div>
+      </div>
+    </div>
+
+    <!-- RAIN -->
+    <div style="margin-bottom:18px">
+      <div class="sec-hdr">🌧️ <span id="lbl-rain">RAIN IN LAST 48H?</span></div>
+      <div class="rain-grid">
+        <div class="rain-btn" data-val="yes" onclick="pickRain(this)"><span class="rain-em">🌧️</span><span data-ik="rain.yes">Yes, it rained</span></div>
+        <div class="rain-btn" data-val="no"  onclick="pickRain(this)"><span class="rain-em">☀️</span><span data-ik="rain.no">No rain</span></div>
+      </div>
+    </div>
+
+    <details style="margin-bottom:16px">
+      <summary style="font-size:0.82rem;color:var(--text-muted);cursor:pointer" data-ik="trap.label">🪤 Optional: pest trap count</summary>
+      <input type="number" id="trap-count" class="form-input" min="0" max="999" placeholder="e.g. 12" style="margin-top:10px"/>
+    </details>
+
+    <div class="step-nav">
+      <button class="btn btn-secondary" onclick="goStep(1)" id="back1"><span data-ik="btn.back">← Back</span></button>
+      <button class="btn btn-primary" onclick="goStep(3)" id="step2-next"><span data-ik="btn.next">Next →</span></button>
+    </div>
+  </div>
+
+  <!-- ── Step 3: Confirm & submit ── -->
+  <div id="step-3" class="hidden">
+    <div style="text-align:center;padding:16px 0">
+      <div style="font-size:2.8rem">📋</div>
+      <h2 style="margin-top:8px" id="s3-title">Confirm & Submit</h2>
+    </div>
+    <div class="card" id="summary-card" style="margin-bottom:16px"></div>
+    <div class="disclaimer">⚠️ <span id="s3-disc">AI screening signal only — not a confirmed diagnosis.</span></div>
+    <div class="step-nav" style="margin-top:16px">
+      <button class="btn btn-secondary" onclick="goStep(2)"><span data-ik="btn.back">← Back</span></button>
+      <button class="btn btn-primary btn-lg" id="submit-btn" onclick="submitTriage()" style="flex:2">
+        <span id="submit-lbl" data-ik="btn.submit">Submit for Analysis</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 2: MY REPORTS ══════════════════════ -->
+<div class="tab-pane" id="tab-history">
+  <div class="page-header">
+    <h2>📋 My Reports</h2>
+    <p>Your recent disease scans and their status.</p>
+  </div>
+  <div id="history-list">
+    <div style="text-align:center;padding:40px;color:var(--text-muted)">
+      <div style="font-size:2rem">🔄</div>
+      <p>Loading your reports…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 3: KVK HELPLINE ══════════════════════ -->
+<div class="tab-pane" id="tab-kvk">
+  <div class="page-header">
+    <h2>📞 KVK Helpline</h2>
+    <p>Krishi Vigyan Kendra — Karnataka agricultural extension officers. Call directly for expert advice.</p>
+  </div>
+  <div id="kvk-list">
+    <div style="text-align:center;padding:40px;color:var(--text-muted)">🔄 Loading…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 4: TIPS ══════════════════════ -->
+<div class="tab-pane" id="tab-tips">
+  <div class="page-header">
+    <h2>💡 Crop Tips</h2>
+    <p>Research-backed tips from PlantVillage and ICAR.</p>
+  </div>
+  <div id="tips-list">
+    <!-- Injected by JS -->
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p style="color:var(--text-muted);margin-top:12px" id="loading-msg">Analysing…</p>
+</div>
+<div class="toast" id="pp-toast"></div>
+
+<script src="/static/app.js"></script>
+<script>
+/* ── i18n dictionary ───────────────────────────────────────── */
+const LABELS = {
+  en: {
+    'tab.scan':'Scan','tab.history':'My Reports','tab.kvk':'KVK Helpline','tab.tips':'Tips',
+    'crop.tomato':'Tomato','crop.potato':'Potato','crop.corn_maize':'Corn','crop.grape':'Grape',
+    'crop.bell_pepper':'Pepper','crop.strawberry':'Strawberry','crop.orange':'Orange',
+    'crop.soybean':'Soybean','crop.apple':'Apple','crop.other':'Other',
+    'stage.seedling':'Seedling','stage.vegetative':'Vegetative','stage.flowering':'Flowering',
+    'stage.fruiting':'Fruiting','stage.maturity':'Maturity',
+    'sym.leaf_spots':'Leaf Spots','sym.yellowing':'Yellowing','sym.wilting':'Wilting',
+    'sym.leaf_curling':'Leaf Curling','sym.holes':'Holes / Eaten',
+    'sym.powder':'White Powder','sym.stem_rot':'Stem Rot','sym.healthy':'Looks Healthy',
+    'sev.almost_all':'Almost All','sev.many':'Many','sev.few':'A Few','sev.unknown':'Not Sure',
+    'rain.yes':'Yes, it rained','rain.no':'No rain',
+    'trap.label':'🪤 Optional: pest trap count',
+    'btn.back':'← Back','btn.next':'Next →','btn.submit':'Submit for Analysis',
+    'lbl-crop':'CROP TYPE','lbl-stage':'GROWTH STAGE','lbl-symptom':'WHAT DO YOU SEE?',
+    'lbl-severity':'HOW MANY PLANTS AFFECTED?','lbl-rain':'RAIN IN LAST 48H?',
+    'lbl-known':'COMMON ISSUES FOR THIS CROP',
+    's1-title':'📷 Upload Leaf Photo','s1-sub':'Snap a close-up. AI will instantly detect the disease.',
+    'upload-cta':'Tap to capture or upload','upload-sub':'JPG · PNG · WEBP · Camera',
+    's2-title':'✏️ Confirm Details','s2-sub':'AI pre-filled what it detected. Correct if needed.',
+    's3-title':'Confirm & Submit','s3-disc':'AI screening signal only — not a confirmed diagnosis.',
+    'step1-next-lbl':'Next →','mic-btn-lbl':'Speak','ai-disc':'Tap options below to change anything.',
+    'sl-1':'Photo','sl-2':'Confirm','sl-3':'Submit',
+  },
+  kn: {
+    'tab.scan':'ಸ್ಕ್ಯಾನ್','tab.history':'ವರದಿಗಳು','tab.kvk':'KVK ಸಹಾಯ','tab.tips':'ಸಲಹೆ',
+    'crop.tomato':'ಟೊಮೇಟೊ','crop.potato':'ಆಲೂಗಡ್ಡೆ','crop.corn_maize':'ಮೆಕ್ಕೆ ಜೋಳ',
+    'crop.grape':'ದ್ರಾಕ್ಷಿ','crop.bell_pepper':'ಕ್ಯಾಪ್ಸಿಕಂ','crop.strawberry':'ಸ್ಟ್ರಾಬೆರಿ',
+    'crop.orange':'ಕಿತ್ತಳೆ','crop.soybean':'ಸೋಯಾಬೀನ್','crop.apple':'ಸೇಬು','crop.other':'ಇತರ',
+    'stage.seedling':'ಮೊಳಕೆ','stage.vegetative':'ಸಸ್ಯ ಬೆಳವಣಿಗೆ','stage.flowering':'ಹೂ ಬಿಡುವ',
+    'stage.fruiting':'ಕಾಯಿ ಕಟ್ಟುವ','stage.maturity':'ಮಾಗಿದ',
+    'sym.leaf_spots':'ಎಲೆ ಕಲೆ','sym.yellowing':'ಹಳದಿ ಆಗುವಿಕೆ','sym.wilting':'ಬಾಡುವಿಕೆ',
+    'sym.leaf_curling':'ಎಲೆ ಸುರುಳಿ','sym.holes':'ರಂಧ್ರ / ತಿನ್ನುವಿಕೆ',
+    'sym.powder':'ಬಿಳಿ ಹಿಟ್ಟು','sym.stem_rot':'ಕಾಂಡ ಕೊಳೆ','sym.healthy':'ಆರೋಗ್ಯಕರ',
+    'sev.almost_all':'ಬಹುತೇಕ ಎಲ್ಲಾ','sev.many':'ಹೆಚ್ಚು','sev.few':'ಕೆಲವು','sev.unknown':'ತಿಳಿದಿಲ್ಲ',
+    'rain.yes':'ಹೌದು, ಮಳೆ ಬಿದ್ದಿದೆ','rain.no':'ಇಲ್ಲ, ಒಣಗಿದೆ',
+    'trap.label':'🪤 ಐಚ್ಛಿಕ: ಕೀಟ ಬಲೆ ಸಂಖ್ಯೆ',
+    'btn.back':'← ಹಿಂದೆ','btn.next':'ಮುಂದೆ →','btn.submit':'ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಸಲ್ಲಿಸಿ',
+    'lbl-crop':'ಬೆಳೆ ವಿಧ','lbl-stage':'ಬೆಳವಣಿಗೆ ಹಂತ','lbl-symptom':'ನೀವು ಏನು ನೋಡುತ್ತಿದ್ದೀರಿ?',
+    'lbl-severity':'ಎಷ್ಟು ಸಸ್ಯಗಳು ಬಾಧಿತ?','lbl-rain':'ಕಳೆದ 48 ಗಂಟೆ ಮಳೆ ಬಿದ್ದಿದೆಯೇ?',
+    'lbl-known':'ಈ ಬೆಳೆಗೆ ಸಾಮಾನ್ಯ ರೋಗಗಳು',
+    's1-title':'📷 ಎಲೆ ಫೋಟೊ ಅಪ್ಲೋಡ್ ಮಾಡಿ','s1-sub':'ಸ್ಪಷ್ಟ ಫೋಟೊ ತೆಗೆಯಿರಿ. AI ರೋಗ ಪತ್ತೆ ಮಾಡುತ್ತದೆ.',
+    'upload-cta':'ಒತ್ತಿ ಅಪ್ಲೋಡ್ ಮಾಡಿ','upload-sub':'JPG · PNG · WEBP · ಕ್ಯಾಮೆರಾ',
+    's2-title':'✏️ ವಿವರ ಖಚಿತಪಡಿಸಿ','s2-sub':'AI ಪತ್ತೆ ಮಾಡಿದ ಮಾಹಿತಿ ತೋರಿಸಲಾಗಿದೆ.',
+    's3-title':'ದೃಢಪಡಿಸಿ ಮತ್ತು ಸಲ್ಲಿಸಿ','s3-disc':'ಫಲಿತಾಂಶ AI ತಪಾಸಣಾ ಸಂಕೇತ, ರೋಗನಿರ್ಣಯ ಅಲ್ಲ.',
+    'step1-next-lbl':'ಮುಂದೆ →','mic-btn-lbl':'ಮಾತನಾಡಿ','ai-disc':'ಬದಲಿಸಲು ಯಾವುದೇ ಆಯ್ಕೆ ಒತ್ತಿ.',
+    'sl-1':'ಫೋಟೊ','sl-2':'ಖಚಿತ','sl-3':'ಸಲ್ಲಿಸಿ',
+  },
+  hi: {
+    'tab.scan':'स्कैन','tab.history':'मेरी रिपोर्ट','tab.kvk':'KVK हेल्पलाइन','tab.tips':'सुझाव',
+    'crop.tomato':'टमाटर','crop.potato':'आलू','crop.corn_maize':'मक्का','crop.grape':'अंगूर',
+    'crop.bell_pepper':'शिमला मिर्च','crop.strawberry':'स्ट्रॉबेरी','crop.orange':'संतरा',
+    'crop.soybean':'सोयाबीन','crop.apple':'सेब','crop.other':'अन्य',
+    'stage.seedling':'अंकुर','stage.vegetative':'पत्ते बढ़ना','stage.flowering':'फूल आना',
+    'stage.fruiting':'फल लगना','stage.maturity':'कटाई',
+    'sym.leaf_spots':'पत्ती पर धब्बे','sym.yellowing':'पीला पड़ना','sym.wilting':'मुरझाना',
+    'sym.leaf_curling':'पत्ती मुड़ना','sym.holes':'छेद / कटाव',
+    'sym.powder':'सफेद चूर्ण','sym.stem_rot':'तने का सड़ना','sym.healthy':'स्वस्थ दिखे',
+    'sev.almost_all':'लगभग सब','sev.many':'बहुत','sev.few':'कुछ','sev.unknown':'पता नहीं',
+    'rain.yes':'हाँ, बारिश हुई','rain.no':'नहीं, सूखा है',
+    'trap.label':'🪤 वैकल्पिक: कीट जाल संख्या',
+    'btn.back':'← वापस','btn.next':'अगला →','btn.submit':'विश्लेषण के लिए जमा करें',
+    'lbl-crop':'फसल का प्रकार','lbl-stage':'विकास चरण','lbl-symptom':'आप क्या देख रहे हैं?',
+    'lbl-severity':'कितने पौधे प्रभावित?','lbl-rain':'पिछले 48 घंटे बारिश?',
+    'lbl-known':'इस फसल की सामान्य बीमारियाँ',
+    's1-title':'📷 पत्ती की फ़ोटो अपलोड करें','s1-sub':'स्पष्ट फ़ोटो लें। AI रोग पहचानेगा।',
+    'upload-cta':'टैप करके अपलोड करें','upload-sub':'JPG · PNG · WEBP · कैमरा',
+    's2-title':'✏️ विवरण की पुष्टि करें','s2-sub':'AI ने जो पहचाना वह भरा है।',
+    's3-title':'पुष्टि करें और जमा करें','s3-disc':'परिणाम AI संकेत है, पक्का निदान नहीं।',
+    'step1-next-lbl':'अगला →','mic-btn-lbl':'बोलें','ai-disc':'बदलने के लिए कोई विकल्प टैप करें।',
+    'sl-1':'फ़ोटो','sl-2':'पुष्टि','sl-3':'जमा',
+  }
+};
+
+/* ── Known diseases per crop (research-backed from PlantVillage + ICAR) ── */
+const KNOWN_ISSUES = {
+  tomato: [
+    {emoji:'🍂', label:'Early Blight',          sym:'leaf_spots',    sev:'many',    key:'tomato_early_blight'},
+    {emoji:'🌑', label:'Late Blight',            sym:'leaf_spots',    sev:'many',    key:'tomato_late_blight'},
+    {emoji:'🌀', label:'Leaf Curl Virus',         sym:'leaf_curling',  sev:'few',     key:'tomato_yellow_leaf_curl'},
+    {emoji:'💀', label:'Fusarium Wilt',           sym:'wilting',       sev:'almost_all', key:'tomato_wilt'},
+    {emoji:'🟣', label:'Septoria Leaf Spot',     sym:'leaf_spots',    sev:'few',     key:'tomato_septoria'},
+  ],
+  potato: [
+    {emoji:'🍂', label:'Early Blight',           sym:'leaf_spots',    sev:'many',    key:'potato_early_blight'},
+    {emoji:'🌑', label:'Late Blight',            sym:'leaf_spots',    sev:'almost_all', key:'potato_late_blight'},
+    {emoji:'🔴', label:'Black Scurf',            sym:'stem_rot',      sev:'few',     key:'potato_black_scurf'},
+    {emoji:'⬜', label:'Common Scab',            sym:'leaf_spots',    sev:'few',     key:'potato_scab'},
+    {emoji:'💛', label:'Virus Yellowing',        sym:'yellowing',     sev:'many',    key:'potato_virus'},
+  ],
+  corn_maize: [
+    {emoji:'🍂', label:'Northern Leaf Blight',  sym:'leaf_spots',    sev:'many',    key:'corn_nlb'},
+    {emoji:'🟠', label:'Common Rust',           sym:'powder_coating', sev:'many',   key:'corn_rust'},
+    {emoji:'🔘', label:'Gray Leaf Spot',        sym:'leaf_spots',    sev:'few',     key:'corn_gls'},
+    {emoji:'🦠', label:'Ear Rot',               sym:'leaf_spots',    sev:'almost_all', key:'corn_ear_rot'},
+    {emoji:'⚫', label:'Smut',                  sym:'holes_or_chewing', sev:'few',  key:'corn_smut'},
+  ],
+  grape: [
+    {emoji:'💧', label:'Downy Mildew',          sym:'powder_coating', sev:'many',   key:'grape_downy'},
+    {emoji:'⬜', label:'Powdery Mildew',        sym:'powder_coating', sev:'many',   key:'grape_powdery'},
+    {emoji:'🔵', label:'Botrytis (Grey Mold)', sym:'leaf_spots',    sev:'few',     key:'grape_botrytis'},
+    {emoji:'⚫', label:'Black Rot',             sym:'leaf_spots',    sev:'many',    key:'grape_black_rot'},
+    {emoji:'💛', label:'Leaf Roll Virus',       sym:'leaf_curling',  sev:'almost_all', key:'grape_leafroll'},
+  ],
+  bell_pepper: [
+    {emoji:'🍂', label:'Anthracnose',           sym:'leaf_spots',    sev:'many',    key:'pepper_anthracnose'},
+    {emoji:'🟤', label:'Bacterial Spot',        sym:'leaf_spots',    sev:'few',     key:'pepper_bacterial'},
+    {emoji:'🌀', label:'Leaf Curl Virus',        sym:'leaf_curling',  sev:'many',    key:'pepper_curl'},
+    {emoji:'🔴', label:'Phytophthora Blight',  sym:'wilting',       sev:'almost_all', key:'pepper_phytophthora'},
+    {emoji:'💛', label:'Cercospora Leaf Spot', sym:'leaf_spots',    sev:'few',     key:'pepper_cercospora'},
+  ],
+  strawberry: [
+    {emoji:'⬜', label:'Grey Mold (Botrytis)', sym:'powder_coating', sev:'many',   key:'straw_botrytis'},
+    {emoji:'⬜', label:'Powdery Mildew',       sym:'powder_coating', sev:'few',    key:'straw_powdery'},
+    {emoji:'💛', label:'Leaf Scorch',          sym:'leaf_spots',    sev:'many',    key:'straw_scorch'},
+    {emoji:'🔴', label:'Crown Rot',            sym:'wilting',       sev:'almost_all', key:'straw_crown_rot'},
+    {emoji:'🕳️', label:'Angular Leaf Spot',   sym:'leaf_spots',    sev:'few',     key:'straw_angular'},
+  ],
+  orange: [
+    {emoji:'💛', label:'Citrus Greening (HLB)',sym:'yellowing',     sev:'almost_all', key:'citrus_hlb'},
+    {emoji:'🔴', label:'Citrus Canker',        sym:'leaf_spots',    sev:'many',    key:'citrus_canker'},
+    {emoji:'⚫', label:'Black Spot',           sym:'leaf_spots',    sev:'few',     key:'citrus_black_spot'},
+    {emoji:'🟤', label:'Melanose',             sym:'leaf_spots',    sev:'few',     key:'citrus_melanose'},
+    {emoji:'🔴', label:'Root Rot',             sym:'wilting',       sev:'many',    key:'citrus_root_rot'},
+  ],
+  soybean: [
+    {emoji:'🟠', label:'Soybean Rust',         sym:'powder_coating', sev:'many',   key:'soy_rust'},
+    {emoji:'👁',  label:'Frogeye Leaf Spot',    sym:'leaf_spots',    sev:'few',     key:'soy_frogeye'},
+    {emoji:'💛', label:'Sudden Death Syndrome',sym:'yellowing',     sev:'almost_all', key:'soy_sds'},
+    {emoji:'🔵', label:'Phytophthora Root Rot',sym:'wilting',       sev:'many',    key:'soy_phyto'},
+    {emoji:'🌀', label:'Bean Pod Mottle Virus',sym:'leaf_curling',  sev:'few',     key:'soy_bpmv'},
+  ],
+  apple: [
+    {emoji:'⚫', label:'Apple Scab',           sym:'leaf_spots',    sev:'many',    key:'apple_scab'},
+    {emoji:'🔴', label:'Fire Blight',          sym:'wilting',       sev:'almost_all', key:'apple_fireblight'},
+    {emoji:'⬜', label:'Powdery Mildew',       sym:'powder_coating', sev:'many',   key:'apple_powdery'},
+    {emoji:'🟠', label:'Cedar Apple Rust',     sym:'leaf_spots',    sev:'few',     key:'apple_rust'},
+    {emoji:'🟤', label:'Bitter Rot',           sym:'leaf_spots',    sev:'few',     key:'apple_bitter_rot'},
+  ],
+  other: [
+    {emoji:'🔴', label:'Root Rot',             sym:'wilting',       sev:'many',    key:'generic_root_rot'},
+    {emoji:'🌱', label:'Damping Off',          sym:'wilting',       sev:'almost_all', key:'generic_damping'},
+    {emoji:'🌀', label:'Mosaic Virus',         sym:'leaf_curling',  sev:'many',    key:'generic_mosaic'},
+    {emoji:'💀', label:'Bacterial Wilt',       sym:'wilting',       sev:'almost_all', key:'generic_bact_wilt'},
+    {emoji:'💛', label:'Nutrient Deficiency',  sym:'yellowing',     sev:'few',     key:'generic_nutrient'},
+  ],
+};
+
+/* ── CROP TIPS (from ICAR / PlantVillage research) ── */
+const CROP_TIPS = [
+  {emoji:'🌿', title:'Rotate crops every season',    body:'Avoid growing the same crop in the same field for 2+ consecutive years. This breaks pest and disease cycles, especially for tomato blight and potato scab.'},
+  {emoji:'💧', title:'Water at the base, not leaves', body:'Overhead irrigation wets leaves and promotes fungal diseases like early blight and powdery mildew. Use drip irrigation or water at the soil level.'},
+  {emoji:'🌅', title:'Water in the morning',          body:'Morning watering lets leaves dry out during the day, reducing fungal infection risk. Wet leaves overnight is the #1 cause of grey mold.'},
+  {emoji:'✂️', title:'Remove infected leaves quickly', body:'Bag and remove visibly infected leaves from the field. Do not compost them — this spreads spores. Burn or bury away from the field.'},
+  {emoji:'📏', title:'Maintain plant spacing',        body:'Dense planting reduces air circulation, raising humidity between plants. Good spacing (30-45 cm for tomatoes) dramatically reduces disease pressure.'},
+  {emoji:'🧪', title:'Soil test before applying fertiliser', body:'Over-fertilising with nitrogen makes plants lush but susceptible to aphids and fungal attack. Balanced NPK reduces disease incidence.'},
+  {emoji:'🪲', title:'Scout weekly for pests',        body:'Early detection is the best control. Walk your field each week and look at the underside of leaves for mites, aphids, and whiteflies.'},
+  {emoji:'🌱', title:'Use certified disease-free seeds', body:'Most fungal and bacterial diseases are seed-borne. Always buy seeds from certified suppliers and treat with Thiram or Captan before sowing.'},
+  {emoji:'📸', title:'Document and report early',     body:'Upload a photo using PestPulse as soon as you see the first symptoms. Early AI detection + officer review can prevent 70-80% crop loss.'},
+];
+
+/* ── KVK CONTACTS (shown from config) ── */
+let _kvkContacts = [];
+
+/* ── setLang (nuclear version) ── */
+function setLang(lang) {
+  currentLanguage = lang;
+  localStorage.setItem('pp_lang', lang);
+  // Step 1: remove active from ALL buttons
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  // Step 2: add active ONLY to matching button
+  const target = document.querySelector(`.lang-btn[data-lang="${lang}"]`);
+  if (target) target.classList.add('active');
+  // Step 3: translate everything with data-ik
+  const D = LABELS[lang] || LABELS.en;
+  document.querySelectorAll('[data-ik]').forEach(el => {
+    const v = D[el.dataset.ik]; if (v) el.textContent = v;
+  });
+  // Step 4: translate id-targeted strings
+  Object.entries(D).forEach(([k,v]) => {
+    const el = document.getElementById(k);
+    if (el && !el.dataset.ik) el.textContent = v;
+  });
+  // Step 5: re-render known issues in new language
+  if (_currentCrop) renderKnownIssues(_currentCrop);
+}
+
+/* ── Tab switching ── */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-'+tab));
+  if (tab === 'history') loadHistory();
+  if (tab === 'kvk')     loadKVK();
+  if (tab === 'tips')    renderTips();
+}
+
+/* ── Step navigation ── */
+let currentStep = 1;
+function goStep(n) {
+  if (n === 3) buildSummary();
+  [1,2,3].forEach(i => {
+    document.getElementById(`step-${i}`)?.classList.toggle('hidden', i !== n);
+    const si = document.getElementById(`si-${i}`);
+    if (si) {
+      si.classList.remove('active','complete');
+      if (i < n) si.classList.add('complete');
+      if (i === n) si.classList.add('active');
+    }
+  });
+  currentStep = n;
+  window.scrollTo(0,0);
+  if (n === 2 && _aiDetected) applyAIDetected(_aiDetected);
+}
+
+/* ── Form state ── */
+const form = { crop:null, growth_stage:null, symptom_group:null, severity:null, recent_rain:null, trap_count:null, lat:12.97, lon:77.59 };
+let _aiDetected  = null;
+let _currentCrop = null;
+let selectedFile = null;
+
+/* ── Icon pickers ── */
+window.pick = function(field, el) {
+  el.closest('.icon-grid')?.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  form[field] = el.dataset.val;
+  if (field === 'crop') { _currentCrop = el.dataset.val; renderKnownIssues(el.dataset.val); }
+};
+window.pickSev = function(el) {
+  document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  form.severity = el.dataset.val;
+};
+window.pickRain = function(el) {
+  document.querySelectorAll('.rain-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  form.recent_rain = el.dataset.val;
+};
+
+/* ── Known issues chips ── */
+function renderKnownIssues(crop) {
+  const issues = KNOWN_ISSUES[crop] || KNOWN_ISSUES.other;
+  const sec  = document.getElementById('known-issues-section');
+  const cont = document.getElementById('known-issues-chips');
+  if (!sec || !cont) return;
+  cont.innerHTML = issues.map(iss => `
+    <div class="issue-chip" onclick="applyKnownIssue('${iss.sym}','${iss.sev}',this)">
+      <span class="chip-em">${iss.emoji}</span>${iss.label}
+    </div>`).join('');
+  sec.style.display = 'block';
+}
+window.applyKnownIssue = function(sym, sev, chipEl) {
+  document.querySelectorAll('.issue-chip').forEach(c => c.classList.remove('selected'));
+  chipEl.classList.add('selected');
+  // Select symptom
+  const symOpt = document.querySelector(`#symptom-grid .icon-option[data-val="${sym}"]`);
+  if (symOpt) { document.querySelectorAll('#symptom-grid .icon-option').forEach(o=>o.classList.remove('selected')); symOpt.classList.add('selected'); form.symptom_group = sym; }
+  // Select severity
+  const sevOpt = document.querySelector(`.sev-btn[data-val="${sev}"]`);
+  if (sevOpt) { document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('selected')); sevOpt.classList.add('selected'); form.severity = sev; }
+};
+
+/* ── AI auto-detect on image upload ── */
+window.onFileSelected = async function(e) {
+  if (!e.target.files[0]) return;
+  selectedFile = e.target.files[0];
+  document.getElementById('upload-preview').classList.remove('hidden');
+  document.getElementById('preview-img').src = URL.createObjectURL(selectedFile);
+  document.getElementById('upload-zone').classList.add('hidden');
+  const ir = document.getElementById('infer-result');
+  const nx = document.getElementById('step1-next');
+  if (ir) ir.innerHTML = `<div class="infer-card" style="display:flex;align-items:center;gap:12px"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div><span>🤖 AI scanning leaf…</span></div>`;
+  if (nx) nx.disabled = true;
+  try {
+    const fd = new FormData();
+    fd.append('image', selectedFile, selectedFile.name);
+    const res  = await fetch('/api/v1/quick-infer', { method:'POST', body:fd });
+    const data = await res.json();
+    const pred = data.prediction || {};
+    const conf = pred.confidence || 0;
+    const name = pred.display_name || 'Unknown';
+    const pct  = Math.round(conf * 100);
+    _aiDetected = data.auto_fill || {};
+    if (ir) {
+      const cls = conf >= 0.7 ? 'green' : 'amber';
+      ir.innerHTML = `
+        <div class="infer-card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="disease-name">🤖 ${name}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">
+                Confidence: ${pct}% · Model: ${data.provider || 'Fixture'}
+              </div>
+            </div>
+            <span class="ai-badge" style="color:var(--${cls})">${pct}%</span>
+          </div>
+          <div class="conf-bar-wrap">
+            <div class="conf-bar" style="width:${pct}%;background:var(--${cls})"></div>
+          </div>
+          ${pct < 60 ? '<div class="disclaimer">⚠️ Low confidence — please verify manually in step 2</div>' : ''}
+          ${Object.keys(_aiDetected).length ? `<div style="margin-top:8px;font-size:0.78rem;color:var(--green)">✅ Auto-filled: ${Object.keys(_aiDetected).join(', ')}</div>` : ''}
+        </div>`;
+    }
+    if (nx) {
+      nx.disabled = false;
+      const lbl = document.getElementById('step1-next-lbl');
+      if (lbl) lbl.textContent = Object.keys(_aiDetected).length > 0 ? '✅ AI detected — Confirm →' : 'Next →';
+    }
+  } catch(err) {
+    if (ir) ir.innerHTML = `<div class="infer-card"><div class="disclaimer">⚠️ Could not analyse — proceed manually (${err.message})</div></div>`;
+    if (nx) nx.disabled = false;
+  }
+};
+
+window.removeImage = function() {
+  selectedFile = null; _aiDetected = null;
+  document.getElementById('file-input').value = '';
+  document.getElementById('upload-preview').classList.add('hidden');
+  document.getElementById('upload-zone').classList.remove('hidden');
+  const ir = document.getElementById('infer-result');
+  if (ir) ir.innerHTML = '';
+  const nx = document.getElementById('step1-next');
+  if (nx) nx.disabled = false;
+};
+
+function applyAIDetected(detected) {
+  if (!detected || !Object.keys(detected).length) return;
+  const GRID = { crop:'crop-grid', growth_stage:'stage-grid', symptom_group:'symptom-grid' };
+  Object.entries(detected).forEach(([field, val]) => {
+    if (field === 'severity') {
+      const b = document.querySelector(`.sev-btn[data-val="${val}"]`);
+      if (b) { document.querySelectorAll('.sev-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); form.severity = val; }
+      return;
+    }
+    const gid = GRID[field];
+    if (!gid) return;
+    const opt = document.querySelector(`#${gid} .icon-option[data-val="${val}"]`);
+    if (opt) {
+      document.querySelectorAll(`#${gid} .icon-option`).forEach(x=>x.classList.remove('selected'));
+      opt.classList.add('selected');
+      form[field] = val;
+      if (field === 'crop') { _currentCrop = val; renderKnownIssues(val); }
+    }
+  });
+  // Show banner
+  const banner = document.getElementById('ai-banner');
+  const tags   = document.getElementById('ai-tags');
+  if (banner && tags) {
+    const FL = {crop:'Crop', symptom_group:'Symptom', severity:'Severity', growth_stage:'Stage'};
+    tags.innerHTML = Object.entries(detected).map(([k,v]) =>
+      `<span class="ai-tag">✅ ${FL[k]||k}: <strong>${v}</strong></span>`
+    ).join('');
+    banner.classList.remove('hidden');
+  }
+}
+
+/* ── Voice ── */
+window.toggleMic = function() {
+  const btn = document.getElementById('mic-btn');
+  const status = document.getElementById('mic-status');
+  if (btn) btn.dataset.defaultLabel = '🎤 Speak';
+  startVoiceInput(btn, status);
+};
+
+/* ── Summary ── */
+function buildSummary() {
+  const el = document.getElementById('summary-card');
+  if (!el) return;
+  const L = LABELS[currentLanguage] || LABELS.en;
+  const rows = [
+    ['🌾', L['lbl-crop']||'Crop',       form.crop||'—'],
+    ['📅', L['lbl-stage']||'Stage',     form.growth_stage||'—'],
+    ['🔍', L['lbl-symptom']||'Symptom', form.symptom_group||'—'],
+    ['⚠️', L['lbl-severity']||'Severity', form.severity||'—'],
+    ['🌧️', L['lbl-rain']||'Rain',       form.recent_rain||'—'],
+    ['📍', 'Location',                  `${form.lat.toFixed(2)}, ${form.lon.toFixed(2)}`],
+    ['📷', 'Image',                     selectedFile ? selectedFile.name : 'None'],
+  ];
+  el.innerHTML = rows.map(([i,k,v]) =>
+    `<div class="sum-row"><span style="color:var(--text-muted)">${i} ${k}</span><span style="font-weight:700">${v}</span></div>`
+  ).join('');
+}
+
+/* ── Submit ── */
+window.submitTriage = async function() {
+  const btn = document.getElementById('submit-btn');
+  const lbl = document.getElementById('submit-lbl');
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = '⏳ Submitting…';
+  showLoading();
+  const fd = new FormData();
+  fd.append('crop',           form.crop||'unknown');
+  fd.append('growth_stage',   form.growth_stage||'vegetative');
+  fd.append('symptom_group',  form.symptom_group||'leaf_spots');
+  fd.append('severity',       form.severity||'unknown');
+  fd.append('recent_rain',    form.recent_rain||'unknown');
+  fd.append('lat',            form.lat);
+  fd.append('lon',            form.lon);
+  fd.append('language',       currentLanguage);
+  fd.append('client_event_id', crypto.randomUUID ? crypto.randomUUID() : `e${Date.now()}`);
+  if (form.trap_count) fd.append('trap_count', form.trap_count);
+  if (selectedFile) fd.append('image', selectedFile, selectedFile.name);
+  try {
+    const data = await API.post('/api/v1/observations', fd, true);
+    hideLoading();
+    window.location.href = `/result?id=${data.observation_id}`;
+  } catch(err) {
+    hideLoading();
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = LABELS[currentLanguage]?.['btn.submit'] || 'Submit for Analysis';
+    showToast(`❌ ${err.message}`, 'red');
+  }
+};
+
+/* ── History tab ── */
+async function loadHistory() {
+  const el = document.getElementById('history-list');
+  if (!el) return;
+  try {
+    const data = await API.get('/api/v1/farmer/history');
+    if (!data.history.length) {
+      el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">📭 No reports yet. Start a scan!</div>`;
+      return;
+    }
+    el.innerHTML = data.history.map(h => {
+      const cls = statusColor(h.status);
+      const sc  = h.triage_score ? (h.triage_score*100).toFixed(0)+'%' : '—';
+      const dt  = h.created_at ? new Date(h.created_at).toLocaleDateString() : '—';
+      return `<div class="hist-card" onclick="window.location='/result?id=${h.id}'">
+        <div>
+          <div style="font-weight:700">${h.crop||'?'} — ${h.symptom_group||'?'}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${dt} · Severity: ${h.severity||'—'}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="badge badge-${cls}" style="font-size:0.7rem;padding:3px 10px">${statusLabel(h.status)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">Score: ${sc}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">⚠️ Could not load reports.</div>`;
+  }
+}
+
+/* ── KVK tab ── */
+async function loadKVK() {
+  const el = document.getElementById('kvk-list');
+  if (!el) return;
+  if (_kvkContacts.length) { renderKVK(_kvkContacts, el); return; }
+  try {
+    const data = await API.get('/api/v1/kvk');
+    _kvkContacts = data.contacts || [];
+    renderKVK(_kvkContacts, el);
+  } catch {
+    // Fallback
+    _kvkContacts = [
+      {name:'KVK Bengaluru (GKVK)',   phone:'080-23333100', district:'Bengaluru Rural',   state:'Karnataka'},
+      {name:'KVK Tumkur',             phone:'0816-2277555', district:'Tumkur',             state:'Karnataka'},
+      {name:'KVK Hassan',             phone:'08172-268030', district:'Hassan',             state:'Karnataka'},
+      {name:'KVK Mysuru (UAS)',       phone:'0821-2517337', district:'Mysuru',             state:'Karnataka'},
+      {name:'KVK Chikkaballapur',     phone:'08156-272005', district:'Chikkaballapur',     state:'Karnataka'},
+      {name:'KVK Ramanagara',         phone:'080-27272200', district:'Ramanagara',         state:'Karnataka'},
+      {name:'ICAR Helpline (National)','phone':'1800-180-1551', district:'All India',      state:'India'},
+    ];
+    renderKVK(_kvkContacts, el);
+  }
+}
+
+function renderKVK(contacts, el) {
+  el.innerHTML = contacts.map(c => `
+    <div class="kvk-card">
+      <div>
+        <div class="kvk-name">${c.name}</div>
+        <div class="kvk-loc">📍 ${c.district||''}, ${c.state||''}</div>
+        ${c.phone ? `<div style="font-size:0.78rem;color:var(--green);margin-top:4px">📞 ${c.phone}</div>` : ''}
+      </div>
+      <div class="kvk-actions">
+        ${c.phone ? `<a href="tel:${c.phone.replace(/[-\s]/g,'')}" class="btn btn-primary btn-sm">📞 Call</a>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+/* ── Tips tab ── */
+function renderTips() {
+  const el = document.getElementById('tips-list');
+  if (!el || el.innerHTML.trim()) return;
+  el.innerHTML = CROP_TIPS.map(t => `
+    <div class="tip-card">
+      <div class="tip-title">${t.emoji} ${t.title}</div>
+      <div class="tip-body">${t.body}</div>
+    </div>`).join('');
+}
+
+/* ── GPS ── */
+function initGPS() {
+  navigator.geolocation?.getCurrentPosition(p => { form.lat = p.coords.latitude; form.lon = p.coords.longitude; }, ()=>{});
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', () => {
+  setLang(currentLanguage);
+  initGPS();
+  goStep(1);
+  document.getElementById('trap-count')?.addEventListener('input', e => { form.trap_count = parseInt(e.target.value)||null; });
+});
+</script>
+</body>
+</html>

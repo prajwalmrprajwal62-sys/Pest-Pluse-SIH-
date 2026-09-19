@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PestPulse — Crop Disease Triage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* ── Landing-page extras ── */
+    .action-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; padding: 0 24px 80px; max-width: 1100px; margin: 0 auto; }
+    .action-card  { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 24px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: var(--transition); text-decoration: none; color: var(--text); }
+    .action-card:hover { border-color: var(--green-border); background: var(--green-glow); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,230,118,0.08); }
+    .action-card .ac-icon { font-size: 2rem; line-height: 1; }
+    .action-card h3 { font-size: 1rem; color: var(--text); margin: 0; }
+    .action-card p  { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+    .section-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); margin-bottom: 16px; }
+    .features-inner { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    footer { border-top: 1px solid var(--border); padding: 28px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
+    footer .footer-brand { font-weight: 700; color: var(--text); }
+    footer .footer-partners { display: flex; gap: 8px; align-items: center; }
+    footer .footer-partners span { color: var(--text-dim); }
+    @media (max-width: 900px) {
+      .features-inner, .action-cards { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 540px) {
+      .features-inner, .action-cards { grid-template-columns: 1fr; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
+<nav class="navbar">
+  <a href="/" class="nav-logo" style="text-decoration:none;">
+    <span class="logo-dot">🌿</span>
+    <span>PestPulse</span>
+  </a>
+  <div class="nav-links">
+    <div class="lang-switcher" id="langSwitcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" data-lang="kn" onclick="setLang('kn')">ಕನ್ನಡ</button>
+      <button class="lang-btn" data-lang="hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+    <a href="/officer" class="btn btn-primary btn-sm" style="margin-left:10px;" data-i18n="nav.login">Officer Login</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════ TICKER ═══════════════════════════════ -->
+<div class="ticker">
+  <div class="ticker-item">
+    <span class="dot"></span>
+    <span data-i18n="ticker.casesToday">Cases Today:</span>&nbsp;<span class="val">24</span>
+  </div>
+  <div class="ticker-item">
+    <span class="dot"></span>
+    <span data-i18n="ticker.districts">Districts Active:</span>&nbsp;<span class="val">6</span>
+  </div>
+  <div class="ticker-item">
+    <span class="dot"></span>
+    <span data-i18n="ticker.crops">Crops Covered:</span>&nbsp;<span class="val">14</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ HERO ══════════════════════════════════ -->
+<section class="hero">
+  <!-- Radial glow bg -->
+  <div class="hero-bg"></div>
+
+  <!-- Animated particles -->
+  <div class="particles" id="particles"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">🟢 <span data-i18n="hero.tag">LIVE NETWORK ACTIVE</span></div>
+
+    <h1 data-i18n="hero.heading">Detect. Triage.&nbsp;<span class="text-green">Protect.</span></h1>
+
+    <p data-i18n="hero.sub">Evidence-led crop disease triage for Karnataka farmers.<br>AI + weather + field context combined.</p>
+
+    <div class="hero-cta">
+      <a href="/farmer" class="btn btn-primary btn-lg" data-i18n="hero.cta1">📷 Scan Crop</a>
+      <a href="/officer" class="btn btn-ghost btn-lg" data-i18n="hero.cta2">👨‍💼 Officer Dashboard</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════ FEATURES ═══════════════════════════════ -->
+<section class="features">
+  <p class="section-label" data-i18n="features.label">Core Capabilities</p>
+  <div class="features-inner">
+
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <h3 data-i18n="feat1.title">Evidence-Led Triage</h3>
+      <p data-i18n="feat1.desc">Symptom, weather, trap, and location signals combined into a single confidence score — no black box.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🗣️</div>
+      <h3 data-i18n="feat2.title">Voice-First</h3>
+      <p data-i18n="feat2.desc">Describe symptoms in Kannada or Hindi by voice. Works on 2G networks with low-end Android devices.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🏥</div>
+      <h3 data-i18n="feat3.title">Expert Review Loop</h3>
+      <p data-i18n="feat3.desc">Borderline cases auto-escalate to KVK officers with full evidence package attached.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <h3 data-i18n="feat4.title">Follow-Up Tracking</h3>
+      <p data-i18n="feat4.desc">Officers log outcomes; the system learns from real-world resolution data over time.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════ ACTION CARDS ROW ════════════════════════════ -->
+<div class="action-cards">
+
+  <a href="/farmer" class="action-card">
+    <div class="ac-icon">📷</div>
+    <h3 data-i18n="ac1.title">Scan Crop</h3>
+    <p data-i18n="ac1.desc">Upload or capture a photo of affected leaves for instant AI analysis.</p>
+  </a>
+
+  <a href="/result" class="action-card">
+    <div class="ac-icon">📊</div>
+    <h3 data-i18n="ac2.title">View Results</h3>
+    <p data-i18n="ac2.desc">See confidence scores, evidence breakdown, and recommended actions.</p>
+  </a>
+
+  <a href="/officer" class="action-card">
+    <div class="ac-icon">🗂️</div>
+    <h3 data-i18n="ac3.title">Officer Queue</h3>
+    <p data-i18n="ac3.desc">Review escalated cases, add expert notes, and close observations.</p>
+  </a>
+
+  <a href="/guide" class="action-card">
+    <div class="ac-icon">📚</div>
+    <h3 data-i18n="ac4.title">Field Guide</h3>
+    <p data-i18n="ac4.desc">Offline pest & disease reference with treatment protocols for Karnataka crops.</p>
+  </a>
+
+</div>
+
+<!-- ══════════════════════════════ FOOTER ════════════════════════════════ -->
+<footer>
+  <span class="footer-brand">PestPulse — AI-assisted crop triage</span>
+  <div class="footer-partners">
+    <span>Powered by</span>
+    <span style="color:var(--green);font-weight:700;">Open-Meteo</span>
+    <span>·</span>
+    <span style="color:var(--green);font-weight:700;">PlantVillage</span>
+    <span>·</span>
+    <span style="color:var(--green);font-weight:700;">KVK Karnataka</span>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
+<script src="/static/app.js" defer></script>
+<script>
+  /* ── Particle generator ── */
+  (function spawnParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 6 + 2;
+      p.style.cssText = [
+        `width:${size}px`, `height:${size}px`,
+        `left:${Math.random() * 100}%`,
+        `animation-duration:${6 + Math.random() * 14}s`,
+        `animation-delay:${Math.random() * 12}s`,
+        `opacity:${0.03 + Math.random() * 0.06}`
+      ].join(';');
+      container.appendChild(p);
+    }
+  })();
+
+  /* ── Language strings ── */
+  const i18n = {
+    en: {
+      'nav.login': 'Officer Login',
+      'ticker.casesToday': 'Cases Today:',
+      'ticker.districts': 'Districts Active:',
+      'ticker.crops': 'Crops Covered:',
+      'hero.tag': 'LIVE NETWORK ACTIVE',
+      'hero.heading': 'Detect. Triage.\u00a0<span class="text-green">Protect.</span>',
+      'hero.sub': 'Evidence-led crop disease triage for Karnataka farmers.<br>AI + weather + field context combined.',
+      'hero.cta1': '📷 Scan Crop',
+      'hero.cta2': '👨‍💼 Officer Dashboard',
+      'features.label': 'Core Capabilities',
+      'feat1.title': 'Evidence-Led Triage',
+      'feat1.desc': 'Symptom, weather, trap, and location signals combined into a single confidence score — no black box.',
+      'feat2.title': 'Voice-First',
+      'feat2.desc': 'Describe symptoms in Kannada or Hindi by voice. Works on 2G networks with low-end Android devices.',
+      'feat3.title': 'Expert Review Loop',
+      'feat3.desc': 'Borderline cases auto-escalate to KVK officers with full evidence package attached.',
+      'feat4.title': 'Follow-Up Tracking',
+      'feat4.desc': 'Officers log outcomes; the system learns from real-world resolution data over time.',
+      'ac1.title': 'Scan Crop', 'ac1.desc': 'Upload or capture a photo of affected leaves for instant AI analysis.',
+      'ac2.title': 'View Results', 'ac2.desc': 'See confidence scores, evidence breakdown, and recommended actions.',
+      'ac3.title': 'Officer Queue', 'ac3.desc': 'Review escalated cases, add expert notes, and close observations.',
+      'ac4.title': 'Field Guide', 'ac4.desc': 'Offline pest & disease reference with treatment protocols for Karnataka crops.',
+    },
+    kn: {
+      'nav.login': 'ಅಧಿಕಾರಿ ಲಾಗಿನ್',
+      'ticker.casesToday': 'ಇಂದಿನ ಪ್ರಕರಣಗಳು:',
+      'ticker.districts': 'ಸಕ್ರಿಯ ಜಿಲ್ಲೆಗಳು:',
+      'ticker.crops': 'ಒಳಗೊಂಡ ಬೆಳೆಗಳು:',
+      'hero.tag': 'ಲೈವ್ ನೆಟ್‌ವರ್ಕ್ ಸಕ್ರಿಯ',
+      'hero.heading': 'ಪತ್ತೆ. ವಿಂಗಡಣೆ.\u00a0<span class="text-green">ರಕ್ಷಣೆ.</span>',
+      'hero.sub': 'ಕರ್ನಾಟಕ ರೈತರಿಗಾಗಿ ಸಾಕ್ಷ್ಯ-ಆಧಾರಿತ ಬೆಳೆ ರೋಗ ವಿಂಗಡಣೆ.<br>AI + ಹವಾಮಾನ + ಕ್ಷೇತ್ರ ಸಂದರ್ಭ ಸಂಯೋಜಿತ.',
+      'hero.cta1': '📷 ಬೆಳೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+      'hero.cta2': '👨‍💼 ಅಧಿಕಾರಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+      'features.label': 'ಮುಖ್ಯ ಸಾಮರ್ಥ್ಯಗಳು',
+      'feat1.title': 'ಸಾಕ್ಷ್ಯ-ಆಧಾರಿತ ವಿಂಗಡಣೆ',
+      'feat1.desc': 'ರೋಗಲಕ್ಷಣ, ಹವಾಮಾನ, ಬಲೆ ಮತ್ತು ಸ್ಥಳ ಸಂಕೇತಗಳನ್ನು ಒಂದೇ ವಿಶ್ವಾಸ ಸ್ಕೋರ್‌ಗೆ ಸಂಯೋಜಿಸಲಾಗಿದೆ.',
+      'feat2.title': 'ಧ್ವನಿ-ಮೊದಲು',
+      'feat2.desc': 'ಕನ್ನಡ ಅಥವಾ ಹಿಂದಿಯಲ್ಲಿ ರೋಗಲಕ್ಷಣಗಳನ್ನು ವಿವರಿಸಿ. 2G ನೆಟ್‌ವರ್ಕ್‌ನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ.',
+      'feat3.title': 'ತಜ್ಞ ಪರಿಶೀಲನೆ ಲೂಪ್',
+      'feat3.desc': 'ಗಡಿರೇಖೆಯ ಪ್ರಕರಣಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ KVK ಅಧಿಕಾರಿಗಳಿಗೆ ಏರಿಕೆಯಾಗುತ್ತವೆ.',
+      'feat4.title': 'ಅನುಸರಣ ಟ್ರ್ಯಾಕಿಂಗ್',
+      'feat4.desc': 'ಅಧಿಕಾರಿಗಳು ಫಲಿತಾಂಶಗಳನ್ನು ದಾಖಲಿಸುತ್ತಾರೆ; ವ್ಯವಸ್ಥೆ ನೈಜ ಡೇಟಾದಿಂದ ಕಲಿಯುತ್ತದೆ.',
+      'ac1.title': 'ಬೆಳೆ ಸ್ಕ್ಯಾನ್', 'ac1.desc': 'ತಕ್ಷಣದ AI ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಪ್ರಭಾವಿತ ಎಲೆಗಳ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.',
+      'ac2.title': 'ಫಲಿತಾಂಶ ನೋಡಿ', 'ac2.desc': 'ಸ್ಕೋರ್‌ಗಳು, ಸಾಕ್ಷ್ಯ ವಿಭಜನೆ ಮತ್ತು ಶಿಫಾರಸುಗಳನ್ನು ನೋಡಿ.',
+      'ac3.title': 'ಅಧಿಕಾರಿ ಕ್ಯೂ', 'ac3.desc': 'ಎಸ್ಕಲೇಟ್ ಆದ ಪ್ರಕರಣಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ತಜ್ಞ ಟಿಪ್ಪಣಿಗಳನ್ನು ಸೇರಿಸಿ.',
+      'ac4.title': 'ಕ್ಷೇತ್ರ ಮಾರ್ಗದರ್ಶಿ', 'ac4.desc': 'ಕರ್ನಾಟಕ ಬೆಳೆಗಳಿಗೆ ಚಿಕಿತ್ಸಾ ಪ್ರೋಟೋಕಾಲ್‌ಗಳೊಂದಿಗೆ ಆಫ್‌ಲೈನ್ ಉಲ್ಲೇಖ.',
+    },
+    hi: {
+      'nav.login': 'अधिकारी लॉगिन',
+      'ticker.casesToday': 'आज के मामले:',
+      'ticker.districts': 'सक्रिय जिले:',
+      'ticker.crops': 'कवर की गई फसलें:',
+      'hero.tag': 'लाइव नेटवर्क सक्रिय',
+      'hero.heading': 'पहचानें. वर्गीकृत करें.\u00a0<span class="text-green">सुरक्षित करें.</span>',
+      'hero.sub': 'कर्नाटक किसानों के लिए साक्ष्य-आधारित फसल रोग ट्राइएज।<br>AI + मौसम + क्षेत्र संदर्भ संयुक्त।',
+      'hero.cta1': '📷 फसल स्कैन करें',
+      'hero.cta2': '👨‍💼 अधिकारी डैशबोर्ड',
+      'features.label': 'मुख्य क्षमताएं',
+      'feat1.title': 'साक्ष्य-आधारित ट्राइएज',
+      'feat1.desc': 'लक्षण, मौसम, जाल और स्थान संकेतों को एकल विश्वास स्कोर में जोड़ा गया।',
+      'feat2.title': 'वॉइस-फर्स्ट',
+      'feat2.desc': 'कन्नड़ या हिंदी में आवाज से लक्षण बताएं। 2G नेटवर्क पर काम करता है।',
+      'feat3.title': 'विशेषज्ञ समीक्षा लूप',
+      'feat3.desc': 'सीमारेखा मामले स्वचालित रूप से KVK अधिकारियों को एस्केलेट होते हैं।',
+      'feat4.title': 'फॉलो-अप ट्रैकिंग',
+      'feat4.desc': 'अधिकारी परिणाम दर्ज करते हैं; सिस्टम वास्तविक डेटा से सीखता है।',
+      'ac1.title': 'फसल स्कैन', 'ac1.desc': 'त्वरित AI विश्लेषण के लिए प्रभावित पत्तियों की फोटो अपलोड करें।',
+      'ac2.title': 'परिणाम देखें', 'ac2.desc': 'स्कोर, साक्ष्य विवरण और अनुशंसित कार्रवाइयां देखें।',
+      'ac3.title': 'अधिकारी कतार', 'ac3.desc': 'एस्केलेटेड मामलों की समीक्षा करें और विशेषज्ञ नोट्स जोड़ें।',
+      'ac4.title': 'फील्ड गाइड', 'ac4.desc': 'कर्नाटक फसलों के लिए उपचार प्रोटोकॉल के साथ ऑफलाइन संदर्भ।',
+    }
+  };
+
+  let currentLang = localStorage.getItem('pp_lang') || 'en';
+
+  function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('pp_lang', lang);
+    // Update active button
+    document.querySelectorAll('.lang-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+    // Apply translations
+    const strings = i18n[lang] || i18n.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (strings[key] !== undefined) el.innerHTML = strings[key];
+    });
+    document.documentElement.lang = lang;
+  }
+
+  // Apply on load
+  document.addEventListener('DOMContentLoaded', () => setLang(currentLang));
+</script>
+</body>
+</html>

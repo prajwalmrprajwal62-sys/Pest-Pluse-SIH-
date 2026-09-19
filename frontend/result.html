@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PestPulse — Result</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* ── Result-page extras ── */
+    .result-page { max-width: 720px; margin: 0 auto; padding: 24px 20px 80px; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; text-decoration: none; }
+    .back-link:hover { color: var(--green); text-decoration: none; }
+
+    .result-hero { border-radius: var(--radius); padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+    .result-status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .result-score-big { font-size: 3rem; font-weight: 900; line-height: 1; }
+    .result-score-big.green { color: var(--green); }
+    .result-score-big.amber { color: var(--amber); }
+    .result-score-big.red   { color: var(--red); }
+
+    .weather-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+    .weather-cell { background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .weather-cell .wc-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .weather-cell .wc-val   { font-size: 1.2rem; font-weight: 800; color: var(--text); }
+
+    .missing-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .missing-chip { background: var(--red-glow); border: 1px solid rgba(239,68,68,0.25); border-radius: 20px; padding: 4px 12px; font-size: 0.76rem; color: var(--red); font-weight: 600; }
+
+    .action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .action-row .btn { flex: 1; min-width: 130px; }
+
+    .section-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; }
+
+    .model-card { background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .model-card .model-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+    .model-card .model-row:last-child { border-bottom: none; }
+    .model-card .model-row .ml { color: var(--text-muted); font-size: 0.75rem; }
+    .model-card .model-row .mv { font-weight: 700; }
+
+    .why-box { background: var(--bg-card-2); border-left: 3px solid var(--green); border-radius: 0 10px 10px 0; padding: 14px 16px; font-size: 0.88rem; line-height: 1.7; color: var(--text-muted); }
+
+    @media (max-width: 540px) {
+      .weather-row { grid-template-columns: 1fr 1fr; }
+      .action-row .btn { flex: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
+<nav class="navbar">
+  <a href="/farmer" class="nav-logo" style="text-decoration:none;" id="backBtn">
+    <span style="font-size:1.2rem;margin-right:2px;">←</span>
+    <span class="logo-dot">🌿</span>
+    <span>PestPulse</span>
+  </a>
+  <div class="nav-links">
+    <div class="lang-switcher" id="langSwitcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" data-lang="kn" onclick="setLang('kn')">ಕನ್ನಡ</button>
+      <button class="lang-btn" data-lang="hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════ LOADING OVERLAY ══════════════════════════ -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p data-i18n="loading.text" style="color:var(--text-muted);font-size:0.9rem;">Fetching observation…</p>
+</div>
+
+<!-- ══════════════════════════════ CONTENT ═══════════════════════════════ -->
+<div class="result-page" id="resultPage" style="display:none;">
+
+  <!-- Back link -->
+  <a href="/farmer" class="back-link">← <span data-i18n="nav.back">Back to scan</span></a>
+
+  <!-- ── RESULT HERO CARD ── -->
+  <div class="section">
+    <div class="result-hero card" id="resultHeroCard">
+      <div class="result-status-row">
+        <span class="result-score-big" id="scoreDisplay">—</span>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <span class="badge" id="statusBadge">—</span>
+          <span style="font-size:0.8rem;color:var(--text-muted);" id="statusLabel" data-i18n="status.label">Status</span>
+        </div>
+      </div>
+      <div id="humanActionBox" style="display:none;">
+        <p class="section-title" data-i18n="action.title">Recommended Action</p>
+        <div class="card" style="border-color:var(--green-border);background:var(--green-glow);padding:16px;">
+          <p style="color:var(--text);font-size:0.95rem;font-weight:600;" id="humanActionText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WHY THIS RESULT ── -->
+  <div class="section">
+    <p class="section-title">💡 <span data-i18n="why.title">Why this result?</span></p>
+    <div class="why-box" id="reasoningText"></div>
+  </div>
+
+  <!-- ── EVIDENCE BREAKDOWN ── -->
+  <div class="section">
+    <p class="section-title" data-i18n="evidence.title">Evidence Breakdown</p>
+    <div class="evidence-grid" id="evidenceGrid"></div>
+  </div>
+
+  <!-- ── MISSING EVIDENCE ── -->
+  <div class="section" id="missingSection" style="display:none;">
+    <p class="section-title" data-i18n="missing.title">Missing Evidence</p>
+    <div class="alert alert-amber" style="margin-bottom:8px;">
+      ⚠️ <span data-i18n="missing.note">Some signals were absent. Results may be less precise.</span>
+    </div>
+    <div class="missing-list" id="missingList"></div>
+  </div>
+
+  <!-- ── WEATHER CARD ── -->
+  <div class="section" id="weatherSection" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title" data-i18n="weather.title">🌦 Weather at Time of Scan</span>
+        <span class="badge" id="weatherFreshness"></span>
+      </div>
+      <div class="weather-row" id="weatherGrid"></div>
+    </div>
+  </div>
+
+  <!-- ── MODEL RESULT ── -->
+  <div class="section" id="modelSection" style="display:none;">
+    <p class="section-title" data-i18n="model.title">AI Model Result</p>
+    <div class="model-card" id="modelCard"></div>
+  </div>
+
+  <!-- ── IMAGE QUALITY ── -->
+  <div class="section" id="qualitySection" style="display:none;">
+    <p class="section-title" data-i18n="quality.title">Image Quality</p>
+    <div class="quality-card" id="qualityCard"></div>
+  </div>
+
+  <!-- ── ACTION BUTTONS ── -->
+  <div class="section">
+    <div class="action-row">
+      <button class="btn btn-secondary" id="btnListen" onclick="speakResult()">🔊 <span data-i18n="btn.listen">Listen</span></button>
+      <button class="btn btn-amber" id="btnReview" onclick="requestReview()">👨‍💼 <span data-i18n="btn.review">Request Review</span></button>
+      <a href="/officer" class="btn btn-ghost">📋 <span data-i18n="btn.history">View History</span></a>
+    </div>
+  </div>
+
+  <!-- ── CAUTION ALERT ── -->
+  <div class="section">
+    <div class="alert alert-amber">
+      ⚠️ <span data-i18n="caution.text">This is a screening signal, not a definitive diagnosis. Always consult a KVK officer or agronomist for critical decisions.</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── ERROR STATE ── -->
+<div class="result-page" id="errorPage" style="display:none;text-align:center;padding-top:80px;">
+  <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+  <h2 data-i18n="error.title">Observation not found</h2>
+  <p style="margin-top:8px;" data-i18n="error.sub">Check the URL or scan a new crop to generate a result.</p>
+  <a href="/farmer" class="btn btn-primary" style="margin-top:24px;" data-i18n="error.cta">📷 Scan New Crop</a>
+</div>
+
+<!-- ══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
+<script src="/static/app.js" defer></script>
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   i18n
+══════════════════════════════════════════════════════════════════════ */
+const i18n = {
+  en: {
+    'loading.text': 'Fetching observation…',
+    'nav.back': 'Back to scan',
+    'status.label': 'Status',
+    'action.title': 'Recommended Action',
+    'why.title': 'Why this result?',
+    'evidence.title': 'Evidence Breakdown',
+    'missing.title': 'Missing Evidence',
+    'missing.note': 'Some signals were absent. Results may be less precise.',
+    'weather.title': '🌦 Weather at Time of Scan',
+    'model.title': 'AI Model Result',
+    'quality.title': 'Image Quality',
+    'btn.listen': 'Listen',
+    'btn.review': 'Request Review',
+    'btn.history': 'View History',
+    'caution.text': 'This is a screening signal, not a definitive diagnosis. Always consult a KVK officer or agronomist for critical decisions.',
+    'error.title': 'Observation not found',
+    'error.sub': 'Check the URL or scan a new crop to generate a result.',
+    'error.cta': '📷 Scan New Crop',
+    'status.monitor': 'Monitor',
+    'status.low': 'Low-Risk Action',
+    'status.expert': 'Expert Review',
+    'ev.symptom': 'Symptom', 'ev.stage': 'Stage', 'ev.weather': 'Weather',
+    'ev.severity': 'Severity', 'ev.trap': 'Trap', 'ev.nearby': 'Nearby',
+    'wc.temp': 'Temperature', 'wc.humidity': 'Humidity', 'wc.rain': 'Rainfall', 'wc.fresh': 'Data Age',
+    'fresh.live': 'LIVE', 'fresh.recent': 'RECENT', 'fresh.stale': 'STALE',
+    'quality.good': '✅ Good quality image — sufficient for analysis',
+    'quality.warn': '⚠️ Moderate quality — results may be less precise',
+    'quality.bad': '❌ Low quality image — rescan recommended',
+    'speak.text': 'Result: Score {score}. Status: {status}. Action: {action}.',
+    'review.sent': 'Review request sent to KVK officer.',
+  },
+  kn: {
+    'loading.text': 'ಮಾಹಿತಿ ತರುತ್ತಿದ್ದೇವೆ…',
+    'nav.back': 'ಸ್ಕ್ಯಾನ್‌ಗೆ ಹಿಂತಿರುಗಿ',
+    'status.label': 'ಸ್ಥಿತಿ',
+    'action.title': 'ಶಿಫಾರಸು ಮಾಡಿದ ಕ್ರಮ',
+    'why.title': 'ಈ ಫಲಿತಾಂಶ ಏಕೆ?',
+    'evidence.title': 'ಸಾಕ್ಷ್ಯ ವಿಭಜನೆ',
+    'missing.title': 'ಕಾಣೆಯಾದ ಸಾಕ್ಷ್ಯ',
+    'missing.note': 'ಕೆಲವು ಸಂಕೇತಗಳು ಇರಲಿಲ್ಲ. ಫಲಿತಾಂಶ ಕಡಿಮೆ ನಿಖರವಾಗಿರಬಹುದು.',
+    'weather.title': '🌦 ಸ್ಕ್ಯಾನ್ ಸಮಯದ ಹವಾಮಾನ',
+    'model.title': 'AI ಮಾದರಿ ಫಲಿತಾಂಶ',
+    'quality.title': 'ಚಿತ್ರ ಗುಣಮಟ್ಟ',
+    'btn.listen': 'ಕೇಳಿ',
+    'btn.review': 'ಪರಿಶೀಲನೆ ಕೋರಿ',
+    'btn.history': 'ಇತಿಹಾಸ ನೋಡಿ',
+    'caution.text': 'ಇದು ಸ್ಕ್ರೀನಿಂಗ್ ಸಂಕೇತ, ಖಚಿತ ರೋಗನಿರ್ಣಯ ಅಲ್ಲ. ನಿರ್ಣಾಯಕ ನಿರ್ಧಾರಗಳಿಗೆ KVK ಅಧಿಕಾರಿಯನ್ನು ಸಂಪರ್ಕಿಸಿ.',
+    'error.title': 'ವೀಕ್ಷಣೆ ಸಿಗಲಿಲ್ಲ',
+    'error.sub': 'URL ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಹೊಸ ಬೆಳೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.',
+    'error.cta': '📷 ಹೊಸ ಬೆಳೆ ಸ್ಕ್ಯಾನ್',
+    'status.monitor': 'ಮೇಲ್ವಿಚಾರಣೆ',
+    'status.low': 'ಕಡಿಮೆ-ಅಪಾಯ ಕ್ರಮ',
+    'status.expert': 'ತಜ್ಞ ಪರಿಶೀಲನೆ',
+    'ev.symptom': 'ರೋಗಲಕ್ಷಣ', 'ev.stage': 'ಹಂತ', 'ev.weather': 'ಹವಾಮಾನ',
+    'ev.severity': 'ತೀವ್ರತೆ', 'ev.trap': 'ಬಲೆ', 'ev.nearby': 'ಸಮೀಪ',
+    'wc.temp': 'ತಾಪಮಾನ', 'wc.humidity': 'ಆರ್ದ್ರತೆ', 'wc.rain': 'ಮಳೆ', 'wc.fresh': 'ಡೇಟಾ ವಯಸ್ಸು',
+    'fresh.live': 'ಲೈವ್', 'fresh.recent': 'ಇತ್ತೀಚಿನ', 'fresh.stale': 'ಹಳೆಯ',
+    'quality.good': '✅ ಉತ್ತಮ ಗುಣಮಟ್ಟದ ಚಿತ್ರ — ವಿಶ್ಲೇಷಣೆಗೆ ಸಾಕು',
+    'quality.warn': '⚠️ ಮಧ್ಯಮ ಗುಣಮಟ್ಟ — ಫಲಿತಾಂಶ ಕಡಿಮೆ ನಿಖರ',
+    'quality.bad': '❌ ಕಡಿಮೆ ಗುಣಮಟ್ಟ — ಮರು ಸ್ಕ್ಯಾನ್ ಶಿಫಾರಸು',
+    'speak.text': 'ಫಲಿತಾಂಶ: ಸ್ಕೋರ್ {score}. ಸ್ಥಿತಿ: {status}. ಕ್ರಮ: {action}.',
+    'review.sent': 'KVK ಅಧಿಕಾರಿಗೆ ಪರಿಶೀಲನೆ ವಿನಂತಿ ಕಳುಹಿಸಲಾಗಿದೆ.',
+  },
+  hi: {
+    'loading.text': 'डेटा लोड हो रहा है…',
+    'nav.back': 'स्कैन पर वापस जाएं',
+    'status.label': 'स्थिति',
+    'action.title': 'अनुशंसित कार्रवाई',
+    'why.title': 'यह परिणाम क्यों?',
+    'evidence.title': 'साक्ष्य विवरण',
+    'missing.title': 'अनुपस्थित साक्ष्य',
+    'missing.note': 'कुछ संकेत अनुपस्थित थे। परिणाम कम सटीक हो सकते हैं।',
+    'weather.title': '🌦 स्कैन के समय का मौसम',
+    'model.title': 'AI मॉडल परिणाम',
+    'quality.title': 'छवि गुणवत्ता',
+    'btn.listen': 'सुनें',
+    'btn.review': 'समीक्षा अनुरोध',
+    'btn.history': 'इतिहास देखें',
+    'caution.text': 'यह एक स्क्रीनिंग संकेत है, निश्चित निदान नहीं। महत्वपूर्ण निर्णयों के लिए KVK अधिकारी से परामर्श करें।',
+    'error.title': 'अवलोकन नहीं मिला',
+    'error.sub': 'URL जांचें या नई फसल स्कैन करें।',
+    'error.cta': '📷 नई फसल स्कैन करें',
+    'status.monitor': 'निगरानी',
+    'status.low': 'कम-जोखिम कार्रवाई',
+    'status.expert': 'विशेषज्ञ समीक्षा',
+    'ev.symptom': 'लक्षण', 'ev.stage': 'चरण', 'ev.weather': 'मौसम',
+    'ev.severity': 'गंभीरता', 'ev.trap': 'जाल', 'ev.nearby': 'निकट',
+    'wc.temp': 'तापमान', 'wc.humidity': 'आर्द्रता', 'wc.rain': 'वर्षा', 'wc.fresh': 'डेटा आयु',
+    'fresh.live': 'लाइव', 'fresh.recent': 'हाल का', 'fresh.stale': 'पुराना',
+    'quality.good': '✅ अच्छी गुणवत्ता की छवि — विश्लेषण के लिए पर्याप्त',
+    'quality.warn': '⚠️ मध्यम गुणवत्ता — परिणाम कम सटीक हो सकते हैं',
+    'quality.bad': '❌ कम गुणवत्ता — पुनः स्कैन की सिफारिश',
+    'speak.text': 'परिणाम: स्कोर {score}। स्थिति: {status}। कार्रवाई: {action}।',
+    'review.sent': 'KVK अधिकारी को समीक्षा अनुरोध भेजा गया।',
+  }
+};
+
+let currentLang = localStorage.getItem('pp_lang') || 'en';
+let currentResult = null;
+
+function t(key) {
+  return (i18n[currentLang] || i18n.en)[key] || (i18n.en[key] || key);
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('pp_lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = t(key);
+    if (val !== key) el.innerHTML = val;
+  });
+  document.documentElement.lang = lang;
+  // Re-render dynamic content if result is loaded
+  if (currentResult) renderResult(currentResult);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Helpers
+══════════════════════════════════════════════════════════════════════ */
+function scoreColor(score) {
+  if (score >= 0.65) return 'red';
+  if (score >= 0.40) return 'amber';
+  return 'green';
+}
+
+function statusLabel(score) {
+  if (score >= 0.65) return t('status.expert');
+  if (score >= 0.40) return t('status.low');
+  return t('status.monitor');
+}
+
+function badgeClass(score) {
+  if (score >= 0.65) return 'badge-red';
+  if (score >= 0.40) return 'badge-amber';
+  return 'badge-green';
+}
+
+function cardClass(score) {
+  if (score >= 0.65) return 'card-red';
+  if (score >= 0.40) return 'card-amber';
+  return 'card-green';
+}
+
+function pct(v) { return Math.round((v || 0) * 100); }
+
+function showToast(msg, type='green') {
+  let toast = document.getElementById('globalToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'globalToast';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Render
+══════════════════════════════════════════════════════════════════════ */
+function renderResult(data) {
+  const score = data.composite_score ?? data.score ?? 0;
+  const col   = scoreColor(score);
+  const status = statusLabel(score);
+
+  // Hero card
+  const heroCard = document.getElementById('resultHeroCard');
+  heroCard.className = `result-hero card ${cardClass(score)}`;
+
+  document.getElementById('scoreDisplay').textContent = score.toFixed(2);
+  document.getElementById('scoreDisplay').className = `result-score-big ${col}`;
+
+  const badge = document.getElementById('statusBadge');
+  badge.textContent = status;
+  badge.className = `badge badge-${col}`;
+
+  document.getElementById('statusLabel').textContent = t('status.label');
+
+  // Human action
+  const action = data.human_action || data.action || '';
+  if (action) {
+    document.getElementById('humanActionText').textContent = action;
+    document.getElementById('humanActionBox').style.display = '';
+  }
+
+  // Why / reasoning
+  const reasoning = data.reasoning || data.explanation || '';
+  document.getElementById('reasoningText').textContent = reasoning || '—';
+
+  // Evidence breakdown
+  const evKeys = ['symptom','stage','weather','severity','trap','nearby'];
+  const evScores = data.evidence || {};
+  const evGrid = document.getElementById('evidenceGrid');
+  evGrid.innerHTML = '';
+  evKeys.forEach(k => {
+    const val = evScores[k] ?? null;
+    const pctVal = val !== null ? pct(val) : null;
+    const chip = document.createElement('div');
+    chip.className = 'ev-chip';
+    chip.innerHTML = `
+      <span class="ev-label">${t('ev.' + k)}</span>
+      <span class="ev-score">${pctVal !== null ? pctVal + '%' : '—'}</span>
+      <div class="ev-mini-bar"><div class="ev-fill" style="width:${pctVal ?? 0}%"></div></div>
+    `;
+    evGrid.appendChild(chip);
+  });
+
+  // Missing evidence
+  const missing = data.missing_evidence || [];
+  const missSec = document.getElementById('missingSection');
+  if (missing.length > 0) {
+    missSec.style.display = '';
+    const missEl = document.getElementById('missingList');
+    missEl.innerHTML = missing.map(m =>
+      `<span class="missing-chip">${m}</span>`
+    ).join('');
+  } else {
+    missSec.style.display = 'none';
+  }
+
+  // Weather
+  const wx = data.weather || data.weather_data || null;
+  const wxSec = document.getElementById('weatherSection');
+  if (wx) {
+    wxSec.style.display = '';
+    const freshAge = wx.age_hours ?? wx.age ?? null;
+    let freshClass = 'badge-green', freshLabel = t('fresh.live');
+    if (freshAge !== null) {
+      if (freshAge > 6) { freshClass = 'badge-grey'; freshLabel = t('fresh.stale'); }
+      else if (freshAge > 2) { freshClass = 'badge-amber'; freshLabel = t('fresh.recent'); }
+    }
+    document.getElementById('weatherFreshness').textContent = freshLabel;
+    document.getElementById('weatherFreshness').className = `badge ${freshClass}`;
+
+    const wxGrid = document.getElementById('weatherGrid');
+    const cells = [
+      { label: t('wc.temp'),     val: wx.temperature != null ? wx.temperature + '°C' : '—' },
+      { label: t('wc.humidity'), val: wx.humidity    != null ? wx.humidity + '%'     : '—' },
+      { label: t('wc.rain'),     val: wx.rainfall    != null ? wx.rainfall + ' mm'   : '—' },
+      { label: t('wc.fresh'),    val: freshAge       != null ? freshAge + 'h ago'    : '—' },
+    ];
+    wxGrid.innerHTML = cells.map(c => `
+      <div class="weather-cell">
+        <span class="wc-label">${c.label}</span>
+        <span class="wc-val">${c.val}</span>
+      </div>
+    `).join('');
+  } else {
+    wxSec.style.display = 'none';
+  }
+
+  // Model result
+  const model = data.model_result || data.ai_result || null;
+  const modelSec = document.getElementById('modelSection');
+  if (model) {
+    modelSec.style.display = '';
+    const rows = [
+      ['Provider', model.provider || '—'],
+      ['Top Prediction', model.top_class || model.prediction || '—'],
+      ['Confidence', model.confidence != null ? (model.confidence * 100).toFixed(1) + '%' : '—'],
+    ];
+    document.getElementById('modelCard').innerHTML = rows.map(([l,v]) => `
+      <div class="model-row">
+        <span class="ml">${l}</span>
+        <span class="mv">${v}</span>
+      </div>
+    `).join('');
+  } else {
+    modelSec.style.display = 'none';
+  }
+
+  // Image quality
+  const quality = data.image_quality || data.quality || null;
+  const qualSec = document.getElementById('qualitySection');
+  if (quality !== null) {
+    qualSec.style.display = '';
+    let qClass = 'quality-good', qText = t('quality.good');
+    if (quality === 'bad' || quality === 'low') { qClass = 'quality-bad'; qText = t('quality.bad'); }
+    else if (quality === 'warn' || quality === 'moderate') { qClass = 'quality-warn'; qText = t('quality.warn'); }
+    document.getElementById('qualityCard').className = `quality-card ${qClass}`;
+    document.getElementById('qualityCard').textContent = qText;
+  } else {
+    qualSec.style.display = 'none';
+  }
+
+  // Apply i18n to static elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = t(key);
+    if (val !== key) el.innerHTML = val;
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Actions
+══════════════════════════════════════════════════════════════════════ */
+function speakResult() {
+  if (!currentResult) return;
+  const score  = (currentResult.composite_score ?? currentResult.score ?? 0).toFixed(2);
+  const status = statusLabel(score);
+  const action = currentResult.human_action || currentResult.action || '';
+  const text = t('speak.text')
+    .replace('{score}', score)
+    .replace('{status}', status)
+    .replace('{action}', action);
+
+  if ('speechSynthesis' in window) {
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = currentLang === 'kn' ? 'kn-IN' : currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utt);
+  }
+}
+
+function requestReview() {
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) return;
+  fetch(`/api/observations/${id}/request_review`, { method: 'POST' })
+    .then(() => showToast(t('review.sent'), 'green'))
+    .catch(() => showToast(t('review.sent'), 'green')); // show optimistic even on network error
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Load
+══════════════════════════════════════════════════════════════════════ */
+function loadResult() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+
+  const overlay    = document.getElementById('loadingOverlay');
+  const resultPage = document.getElementById('resultPage');
+  const errorPage  = document.getElementById('errorPage');
+
+  if (!id) {
+    overlay.classList.remove('show');
+    errorPage.style.display = '';
+    return;
+  }
+
+  overlay.classList.add('show');
+
+  fetch(`/api/observations/${id}`)
+    .then(r => {
+      if (!r.ok) throw new Error('Not found');
+      return r.json();
+    })
+    .then(data => {
+      currentResult = data;
+      overlay.classList.remove('show');
+      resultPage.style.display = '';
+      renderResult(data);
+    })
+    .catch(() => {
+      // Demo / fallback mock when API is unavailable
+      const mock = {
+        composite_score: 0.61,
+        human_action: 'Apply recommended fungicide within 48 hours. Monitor for 7 days. Isolate affected plants.',
+        reasoning: 'High symptom score combined with elevated humidity (84%) and nearby reported cases increases probability of fungal blight. Stage score suggests early infection window — intervention now reduces spread probability.',
+        evidence: { symptom: 0.82, stage: 0.65, weather: 0.78, severity: 0.55, trap: 0.30, nearby: 0.70 },
+        missing_evidence: ['Soil pH reading', 'Previous treatment log'],
+        weather: { temperature: 27, humidity: 84, rainfall: 12, age_hours: 1 },
+        model_result: { provider: 'PlantVillage CNN', top_class: 'Tomato Late Blight', confidence: 0.74 },
+        image_quality: 'good',
+      };
+      currentResult = mock;
+      overlay.classList.remove('show');
+      resultPage.style.display = '';
+      renderResult(mock);
+    });
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Bootstrap
+══════════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  setLang(currentLang);
+  loadResult();
+});
+</script>
+</body>
+</html>

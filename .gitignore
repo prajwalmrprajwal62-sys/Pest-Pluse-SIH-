@@ -1,0 +1,116 @@
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+.eggs/
+lib/
+lib64/
+.installed.cfg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env.local
+
+# ── Environment / secrets ─────────────────────────────────────
+.env
+*.env
+!.env.example
+
+# ── Database & uploads ────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+backend/data/
+backend/uploads/
+backend/media/
+uploads/
+
+# ── ML Model (large files — commit only manifest/labels, not weights) ─
+backend/model/active/model_saved_model/
+backend/model/active/*.zip
+*.h5
+*.keras
+*.tflite
+*.pb
+# But DO track the metadata files:
+!backend/model/active/labels.json
+!backend/model/active/preprocessing.json
+!backend/model/active/model_manifest.json
+!backend/model/active/evaluation.json
+!backend/model/active/RELEASE_SHA256SUMS.txt
+!backend/model/active/model_contract.md
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+*.log.*
+
+# ── OS / editor ───────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# ── Node (if Expo mobile app added) ──────────────────────────
+node_modules/
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# ── Testing / coverage ────────────────────────────────────────
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# ── MyPy / type checks ────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ── Jupyter ───────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Render / deployment ───────────────────────────────────────
+.render/
+
+# ── Misc ──────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.temp
+*.orig
+tmp/
+temp/

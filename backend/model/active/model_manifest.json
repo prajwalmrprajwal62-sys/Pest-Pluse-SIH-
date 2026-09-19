@@ -1,0 +1,30 @@
+{
+  "model_id": "pestpulse-local-colab",
+  "model_version": "v1.0.0",
+  "artifact_format": "tensorflow_saved_model",
+  "serving_signature": "serving_default",
+  "input_key": "image",
+  "output_key": "output_0",
+  "labels_file": "labels.json",
+  "preprocessing_file": "preprocessing.json",
+  "num_classes": 4,
+  "class_names": [
+    "Tomato___Bacterial_spot",
+    "Tomato___Early_blight",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Target_Spot"
+  ],
+  "dataset_name": "PlantVillage",
+  "dataset_version": "github-spMohanty-2026-09",
+  "crop_scope": "Tomato",
+  "trained_on": [
+    "PlantVillage"
+  ],
+  "field_validation": "not_performed",
+  "review_below_confidence": 0.8,
+  "unknown_below_confidence": 0.55,
+  "top_k": 3,
+  "tensorflow_version": "2.20.0",
+  "artifact_sha256": "9d4096f537226a4665516fdf7d8353a96ac67151d5eb19cb486d2185270eaa1d",
+  "release_status": "BENCHMARK_OR_DEMO_ONLY"
+}

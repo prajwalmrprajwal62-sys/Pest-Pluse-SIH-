@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>PestPulse – Select Role</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <style>
+    body { background:var(--bg); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+
+    .login-wrap { width:100%; max-width:400px; }
+
+    .login-logo { text-align:center; margin-bottom:32px; }
+    .login-logo .logo-icon { font-size:3.2rem; }
+    .login-logo h1 { font-size:2rem; font-weight:900; color:var(--text); margin-top:10px; letter-spacing:-0.03em; }
+    .login-logo p { font-size:0.88rem; color:var(--text-muted); margin-top:4px; }
+
+    .role-card {
+      width:100%; background:var(--bg-card); border:2px solid var(--border);
+      border-radius:20px; padding:28px 24px; margin-bottom:16px;
+      cursor:pointer; transition:var(--transition); text-align:left;
+      display:flex; align-items:center; gap:18px;
+    }
+    .role-card:hover { border-color:var(--green); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,230,118,0.12); }
+    .role-card:active { transform:scale(0.98); }
+    .role-em { font-size:3rem; flex-shrink:0; }
+    .role-info h2 { font-size:1.1rem; font-weight:800; color:var(--text); }
+    .role-info p { font-size:0.8rem; color:var(--text-muted); margin-top:4px; line-height:1.5; }
+    .role-arrow { margin-left:auto; font-size:1.3rem; color:var(--text-dim); }
+
+    .farmer-card:hover { border-color:var(--green); }
+    .officer-card:hover { border-color:#6366f1; }
+    .officer-card:hover .role-em { filter:drop-shadow(0 0 8px rgba(99,102,241,0.4)); }
+
+    .demo-note {
+      text-align:center; font-size:0.72rem; color:var(--text-dim);
+      margin-top:20px; line-height:1.5;
+    }
+    .demo-note span {
+      background:var(--bg-card-2); border:1px solid var(--border);
+      border-radius:6px; padding:3px 8px; font-family:monospace;
+      color:var(--text-muted);
+    }
+
+    .lang-row { display:flex; gap:8px; justify-content:center; margin-bottom:28px; }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-logo">
+    <div class="logo-icon">🌿</div>
+    <h1>PestPulse</h1>
+    <p id="login-sub">Crop health triage for Karnataka farmers</p>
+  </div>
+
+  <!-- Language switcher -->
+  <div class="lang-row">
+    <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" data-lang="kn" onclick="setLang('kn')">ಕನ್ನಡ</button>
+    <button class="lang-btn" data-lang="hi" onclick="setLang('hi')">हिंदी</button>
+  </div>
+
+  <!-- Farmer role -->
+  <button class="role-card farmer-card" onclick="selectRole('farmer')">
+    <span class="role-em">👨‍🌾</span>
+    <div class="role-info">
+      <h2 id="farmer-title">I'm a Farmer</h2>
+      <p id="farmer-desc">Scan your crop, hear results in Kannada/Hindi, and get advice.</p>
+    </div>
+    <span class="role-arrow">→</span>
+  </button>
+
+  <!-- Officer role -->
+  <button class="role-card officer-card" onclick="selectRole('officer')">
+    <span class="role-em">👮</span>
+    <div class="role-info">
+      <h2 id="officer-title">I'm an Extension Officer</h2>
+      <p id="officer-desc">Review farmer cases, provide guidance, and track field reports.</p>
+    </div>
+    <span class="role-arrow">→</span>
+  </button>
+
+  <p class="demo-note">
+    Demo mode — no password required.<br/>
+    Role stored in <span>sessionStorage</span> for this session only.
+  </p>
+</div>
+
+<script>
+const LABELS = {
+  en: {
+    sub:         'Crop health triage for Karnataka farmers',
+    farmerTitle: "I'm a Farmer",
+    farmerDesc:  'Scan your crop, hear results in Kannada/Hindi, and get advice.',
+    officerTitle:"I'm an Extension Officer",
+    officerDesc: 'Review farmer cases, provide guidance, and track field reports.',
+  },
+  kn: {
+    sub:         'ಕರ್ನಾಟಕ ರೈತರಿಗಾಗಿ ಬೆಳೆ ಆರೋಗ್ಯ ತ್ರಿಯಾಜ್',
+    farmerTitle: 'ನಾನು ರೈತ',
+    farmerDesc:  'ನಿಮ್ಮ ಬೆಳೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ, ಕನ್ನಡದಲ್ಲಿ ಫಲಿತಾಂಶ ಕೇಳಿ.',
+    officerTitle:'ನಾನು ವಿಸ್ತರಣಾ ಅಧಿಕಾರಿ',
+    officerDesc: 'ರೈತರ ಪ್ರಕರಣಗಳನ್ನು ಪರಿಶೀಲಿಸಿ, ಮಾರ್ಗದರ್ಶನ ನೀಡಿ.',
+  },
+  hi: {
+    sub:         'कर्नाटक के किसानों के लिए फसल स्वास्थ्य',
+    farmerTitle: 'मैं एक किसान हूँ',
+    farmerDesc:  'अपनी फसल स्कैन करें, हिंदी में परिणाम सुनें।',
+    officerTitle:'मैं विस्तार अधिकारी हूँ',
+    officerDesc: 'किसान के मामले देखें, मार्गदर्शन दें।',
+  },
+};
+
+let lang = localStorage.getItem('pp_lang') || 'en';
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('pp_lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === l);
+  });
+  const t = LABELS[l] || LABELS.en;
+  document.getElementById('login-sub').textContent      = t.sub;
+  document.getElementById('farmer-title').textContent   = t.farmerTitle;
+  document.getElementById('farmer-desc').textContent    = t.farmerDesc;
+  document.getElementById('officer-title').textContent  = t.officerTitle;
+  document.getElementById('officer-desc').textContent   = t.officerDesc;
+}
+
+function selectRole(role) {
+  sessionStorage.setItem('pp_role', role);
+  localStorage.setItem('pp_lang', lang);
+  window.location.href = role === 'officer' ? '/officer' : '/farmer';
+}
+
+// Apply saved lang on load
+setLang(lang);
+</script>
+</body>
+</html>

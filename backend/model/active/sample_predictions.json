@@ -1,0 +1,232 @@
+[
+  {
+    "sample_index": 0,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.5012899041175842
+      },
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.4628862738609314
+      },
+      {
+        "class_id": "Tomato___Target_Spot",
+        "display_name": "Tomato___Target_Spot",
+        "confidence": 0.028156833723187447
+      }
+    ],
+    "decision": "UNKNOWN_REVIEW",
+    "review_required": true
+  },
+  {
+    "sample_index": 1,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Target_Spot",
+        "display_name": "Tomato___Target_Spot",
+        "confidence": 0.42889323830604553
+      },
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.2752282917499542
+      },
+      {
+        "class_id": "Tomato___Septoria_leaf_spot",
+        "display_name": "Tomato___Septoria_leaf_spot",
+        "confidence": 0.23504723608493805
+      }
+    ],
+    "decision": "UNKNOWN_REVIEW",
+    "review_required": true
+  },
+  {
+    "sample_index": 2,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.7794275879859924
+      },
+      {
+        "class_id": "Tomato___Septoria_leaf_spot",
+        "display_name": "Tomato___Septoria_leaf_spot",
+        "confidence": 0.21342387795448303
+      },
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.007138265296816826
+      }
+    ],
+    "decision": "REVIEW_REQUIRED",
+    "review_required": true
+  },
+  {
+    "sample_index": 3,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Septoria_leaf_spot",
+        "display_name": "Tomato___Septoria_leaf_spot",
+        "confidence": 0.7284153699874878
+      },
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.13620655238628387
+      },
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.13444754481315613
+      }
+    ],
+    "decision": "REVIEW_REQUIRED",
+    "review_required": true
+  },
+  {
+    "sample_index": 4,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.5187329649925232
+      },
+      {
+        "class_id": "Tomato___Target_Spot",
+        "display_name": "Tomato___Target_Spot",
+        "confidence": 0.33023321628570557
+      },
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.10616203397512436
+      }
+    ],
+    "decision": "UNKNOWN_REVIEW",
+    "review_required": true
+  },
+  {
+    "sample_index": 5,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.949832558631897
+      },
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.029241573065519333
+      },
+      {
+        "class_id": "Tomato___Septoria_leaf_spot",
+        "display_name": "Tomato___Septoria_leaf_spot",
+        "confidence": 0.01882065273821354
+      }
+    ],
+    "decision": "MODEL_SCREENING_SIGNAL",
+    "review_required": false
+  },
+  {
+    "sample_index": 6,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Septoria_leaf_spot",
+        "display_name": "Tomato___Septoria_leaf_spot",
+        "confidence": 0.7694628834724426
+      },
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.2084907740354538
+      },
+      {
+        "class_id": "Tomato___Target_Spot",
+        "display_name": "Tomato___Target_Spot",
+        "confidence": 0.01343605574220419
+      }
+    ],
+    "decision": "REVIEW_REQUIRED",
+    "review_required": true
+  },
+  {
+    "sample_index": 7,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.8961957097053528
+      },
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.06599688529968262
+      },
+      {
+        "class_id": "Tomato___Target_Spot",
+        "display_name": "Tomato___Target_Spot",
+        "confidence": 0.02020871639251709
+      }
+    ],
+    "decision": "MODEL_SCREENING_SIGNAL",
+    "review_required": false
+  },
+  {
+    "sample_index": 8,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.7094799280166626
+      },
+      {
+        "class_id": "Tomato___Target_Spot",
+        "display_name": "Tomato___Target_Spot",
+        "confidence": 0.22478657960891724
+      },
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.054401032626628876
+      }
+    ],
+    "decision": "REVIEW_REQUIRED",
+    "review_required": true
+  },
+  {
+    "sample_index": 9,
+    "true_class_id": "Tomato___Bacterial_spot",
+    "top_k": [
+      {
+        "class_id": "Tomato___Bacterial_spot",
+        "display_name": "Tomato___Bacterial_spot",
+        "confidence": 0.8563036322593689
+      },
+      {
+        "class_id": "Tomato___Early_blight",
+        "display_name": "Tomato___Early_blight",
+        "confidence": 0.13134106993675232
+      },
+      {
+        "class_id": "Tomato___Septoria_leaf_spot",
+        "display_name": "Tomato___Septoria_leaf_spot",
+        "confidence": 0.009350236505270004
+      }
+    ],
+    "decision": "MODEL_SCREENING_SIGNAL",
+    "review_required": false
+  }
+]

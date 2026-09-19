@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PestPulse – Officer Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* ── Officer-specific styles ──────────────────────────── */
+    .dash-title {
+      font-size: 0.88rem; font-weight: 700; color: var(--text-muted);
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    .queue-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .queue-scroll { overflow-x: auto; }
+
+    .queue-table tbody tr td:first-child { color: var(--green); font-weight: 700; }
+
+    .action-btn-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .action-btn-grid .btn { font-size: 0.8rem; min-height: 42px; padding: 10px 14px; border-radius: 10px; }
+
+    .note-area {
+      background: var(--bg-card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      width: 100%;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+    .note-area:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,230,118,0.15); }
+
+    .followup-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+    }
+    .fu-btn {
+      background: var(--bg-card-2); border: 2px solid var(--border);
+      border-radius: 10px; padding: 10px; text-align: center;
+      cursor: pointer; font-size: 0.85rem; font-weight: 700;
+      color: var(--text-muted); transition: var(--transition);
+    }
+    .fu-btn:hover  { border-color: var(--green-border); color: var(--green); }
+    .fu-btn.active { border-color: var(--green); background: var(--green-glow); color: var(--green); }
+
+    .panel-section-title {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px;
+    }
+
+    .prediction-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+    }
+    .prediction-name { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .confidence-pill {
+      background: var(--green-glow); color: var(--green);
+      border: 1px solid var(--green-border);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 0.78rem; font-weight: 700;
+    }
+
+    .missing-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .missing-badge {
+      background: var(--red-glow); color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 20px; padding: 3px 10px;
+      font-size: 0.72rem; font-weight: 700;
+    }
+
+    .weather-row {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .panel-photo {
+      width: 100%; border-radius: 10px; max-height: 200px;
+      object-fit: cover; border: 1px solid var(--border);
+    }
+
+    .reasoning-text {
+      font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;
+      background: var(--bg-card-2); border-radius: 8px;
+      padding: 12px; border: 1px solid var(--border);
+    }
+
+    @media (max-width: 640px) {
+      .action-btn-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Overlay behind side panel on mobile */
+    .panel-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 190;
+    }
+    .panel-overlay.show { display: block; }
+
+    .empty-row td { text-align: center; color: var(--text-dim); padding: 40px; font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <span class="logo-dot">🌿</span>
+    PestPulse
+  </div>
+  <div class="dash-title" style="display:none" id="nav-title">Officer Dashboard</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <!-- Only visible on desktop via CSS below -->
+    <div class="dash-title" id="nav-title-desktop">Officer Dashboard</div>
+    <div class="lang-switcher">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn"        data-lang="kn" onclick="setLang('kn')">ಕನ್ನಡ</button>
+      <button class="lang-btn"        data-lang="hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+    <a href="/farmer" class="btn btn-ghost btn-sm">🌾 Farmer View</a>
+  </div>
+</nav>
+
+<!-- ── Page ───────────────────────────────────────────────── -->
+<div class="page-wide">
+
+  <!-- Stat cards -->
+  <div class="grid-4 section" id="stats-grid">
+    <div class="card stat-card card-red">
+      <div class="card-header">
+        <span class="card-title">Needs Review</span>
+        <span class="badge badge-red" id="stat-needs-review">—</span>
+      </div>
+      <div class="stat-val text-red" id="stat-nr-val">—</div>
+      <div class="stat-lbl">Awaiting officer action</div>
+    </div>
+    <div class="card stat-card card-amber">
+      <div class="card-header">
+        <span class="card-title">Severe Cases</span>
+        <span class="badge badge-amber" id="stat-severe">—</span>
+      </div>
+      <div class="stat-val text-amber" id="stat-sv-val">—</div>
+      <div class="stat-lbl">High-risk observations</div>
+    </div>
+    <div class="card stat-card card-amber">
+      <div class="card-header">
+        <span class="card-title">Follow-up Due</span>
+        <span class="badge badge-amber" id="stat-followup">—</span>
+      </div>
+      <div class="stat-val text-amber" id="stat-fu-val">—</div>
+      <div class="stat-lbl">Pending follow-up</div>
+    </div>
+    <div class="card stat-card card-green">
+      <div class="card-header">
+        <span class="card-title">Total Cases</span>
+        <span class="badge badge-green" id="stat-total">—</span>
+      </div>
+      <div class="stat-val" id="stat-tc-val">—</div>
+      <div class="stat-lbl">All time observations</div>
+    </div>
+  </div>
+
+  <!-- Filter chips -->
+  <div class="filter-chips" id="filter-chips">
+    <div class="chip active" data-filter="all"         onclick="applyFilter('all',this)">All</div>
+    <div class="chip"        data-filter="needs_review" onclick="applyFilter('needs_review',this)">Needs Review</div>
+    <div class="chip"        data-filter="monitor"     onclick="applyFilter('monitor',this)">Monitor</div>
+    <div class="chip"        data-filter="low_risk"    onclick="applyFilter('low_risk',this)">Low-Risk</div>
+    <div class="chip"        data-filter="resolved"    onclick="applyFilter('resolved',this)">Resolved</div>
+  </div>
+
+  <!-- Case queue -->
+  <div class="queue-wrap section">
+    <div class="queue-scroll">
+      <table class="queue-table" id="queue-table">
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Crop</th>
+            <th>District</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Score</th>
+            <th>Age</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="queue-body">
+          <tr class="empty-row"><td colspan="8">Loading cases…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── KVK Contacts ───────────────────────────────────────── -->
+  <div class="section">
+    <div class="page-header" style="margin-bottom:12px">
+      <h3>📞 KVK Contacts</h3>
+      <p style="font-size:0.82rem">Krishi Vigyan Kendras — local agricultural extension officers</p>
+    </div>
+    <div id="kvk-list">
+      <div class="kvk-card">
+        <div>
+          <div class="kvk-name">KVK Bengaluru (GKVK)</div>
+          <div class="kvk-dist">Bengaluru Rural · Karnataka</div>
+        </div>
+        <a class="call-btn" href="tel:+918023330153">📞 Call</a>
+      </div>
+      <div class="kvk-card">
+        <div>
+          <div class="kvk-name">KVK Tumkur</div>
+          <div class="kvk-dist">Tumkur · Karnataka</div>
+        </div>
+        <a class="call-btn" href="tel:+918162252244">📞 Call</a>
+      </div>
+      <div class="kvk-card">
+        <div>
+          <div class="kvk-name">KVK Hassan</div>
+          <div class="kvk-dist">Hassan · Karnataka</div>
+        </div>
+        <a class="call-btn" href="tel:+918172268760">📞 Call</a>
+      </div>
+      <div class="kvk-card">
+        <div>
+          <div class="kvk-name">KVK Mysuru (UAS)</div>
+          <div class="kvk-dist">Mysuru · Karnataka</div>
+        </div>
+        <a class="call-btn" href="tel:+918212413084">📞 Call</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Market Prices ──────────────────────────────────────── -->
+  <div class="section">
+    <div class="page-header" style="margin-bottom:12px">
+      <h3>📊 Market Prices <span class="badge badge-grey" style="font-size:0.68rem;vertical-align:middle">APMC today</span></h3>
+    </div>
+    <div class="card">
+      <div id="market-prices">
+        <div class="market-row">
+          <span>🍅 Tomato</span>
+          <span class="market-price" id="mp-tomato">—</span>
+        </div>
+        <div class="market-row">
+          <span>🥔 Potato</span>
+          <span class="market-price" id="mp-potato">—</span>
+        </div>
+        <div class="market-row">
+          <span>🌽 Corn (Maize)</span>
+          <span class="market-price" id="mp-corn">—</span>
+        </div>
+        <div class="market-row">
+          <span>🫑 Pepper</span>
+          <span class="market-price" id="mp-pepper">—</span>
+        </div>
+        <div class="market-row">
+          <span>🍇 Grape</span>
+          <span class="market-price" id="mp-grape">—</span>
+        </div>
+        <div class="market-row">
+          <span>🫘 Soybean</span>
+          <span class="market-price" id="mp-soybean">—</span>
+        </div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-dim);margin-top:10px">Prices in ₹/quintal · Updated daily from AGMARKNET</div>
+    </div>
+  </div>
+
+</div><!-- /.page-wide -->
+
+<!-- ── Panel overlay (mobile) ─────────────────────────────── -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+
+<!-- ── Side Panel ─────────────────────────────────────────── -->
+<div class="side-panel" id="side-panel">
+  <div class="side-panel-header">
+    <h3 id="panel-title">Case #—</h3>
+    <button class="close-btn" onclick="closePanel()" title="Close">✕</button>
+  </div>
+
+  <div class="side-panel-body" id="panel-body">
+
+    <!-- Photo -->
+    <div id="panel-photo-wrap" class="hidden">
+      <img id="panel-photo" class="panel-photo" src="" alt="Case photo" />
+    </div>
+
+    <!-- Quality card -->
+    <div>
+      <div class="panel-section-title">Image Quality</div>
+      <div class="quality-card quality-good" id="panel-quality">✅ Good quality image</div>
+    </div>
+
+    <!-- Model prediction -->
+    <div class="card card-green">
+      <div class="panel-section-title">Model Prediction</div>
+      <div class="prediction-row">
+        <span class="prediction-name" id="panel-prediction">—</span>
+        <span class="confidence-pill" id="panel-confidence">—%</span>
+      </div>
+      <div style="margin-top:10px">
+        <div class="score-bar-wrap">
+          <div class="score-bar green" id="panel-conf-bar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence breakdown -->
+    <div>
+      <div class="panel-section-title">Evidence Breakdown</div>
+      <div class="evidence-grid" id="panel-evidence">
+        <div class="ev-chip">
+          <span class="ev-label">Visual</span>
+          <span class="ev-score" id="ev-visual">—</span>
+          <div class="ev-mini-bar"><div class="ev-fill" id="ev-visual-bar" style="width:0%"></div></div>
+        </div>
+        <div class="ev-chip">
+          <span class="ev-label">Symptom</span>
+          <span class="ev-score" id="ev-symptom">—</span>
+          <div class="ev-mini-bar"><div class="ev-fill" id="ev-symptom-bar" style="width:0%"></div></div>
+        </div>
+        <div class="ev-chip">
+          <span class="ev-label">Weather</span>
+          <span class="ev-score" id="ev-weather">—</span>
+          <div class="ev-mini-bar"><div class="ev-fill" id="ev-weather-bar" style="width:0%"></div></div>
+        </div>
+        <div class="ev-chip">
+          <span class="ev-label">Seasonal</span>
+          <span class="ev-score" id="ev-seasonal">—</span>
+          <div class="ev-mini-bar"><div class="ev-fill" id="ev-seasonal-bar" style="width:0%"></div></div>
+        </div>
+        <div class="ev-chip">
+          <span class="ev-label">Trap</span>
+          <span class="ev-score" id="ev-trap">—</span>
+          <div class="ev-mini-bar"><div class="ev-fill" id="ev-trap-bar" style="width:0%"></div></div>
+        </div>
+        <div class="ev-chip">
+          <span class="ev-label">Historical</span>
+          <span class="ev-score" id="ev-hist">—</span>
+          <div class="ev-mini-bar"><div class="ev-fill" id="ev-hist-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weather card -->
+    <div class="card card-amber">
+      <div class="panel-section-title">Weather Context</div>
+      <div class="weather-row">
+        <div>
+          <div style="font-size:0.9rem;font-weight:700" id="panel-weather-desc">—</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)" id="panel-weather-detail">—</div>
+        </div>
+        <span class="badge" id="panel-weather-freshness">—</span>
+      </div>
+    </div>
+
+    <!-- Reasoning -->
+    <div>
+      <div class="panel-section-title">AI Reasoning</div>
+      <div class="reasoning-text" id="panel-reasoning">Loading reasoning…</div>
+    </div>
+
+    <!-- Missing evidence -->
+    <div id="panel-missing-wrap">
+      <div class="panel-section-title">Missing Evidence</div>
+      <div class="missing-badges" id="panel-missing"></div>
+    </div>
+
+    <hr />
+
+    <!-- Action buttons -->
+    <div>
+      <div class="panel-section-title">Officer Actions</div>
+      <div class="action-btn-grid">
+        <button class="btn btn-primary" onclick="doAction('confirm_monitor')">✅ Confirm Monitor</button>
+        <button class="btn btn-amber"   onclick="doAction('low_risk')">⚠️ Low-Risk Action</button>
+        <button class="btn btn-secondary" onclick="doAction('request_image')">🔍 Request Better Image</button>
+        <button class="btn btn-ghost"   onclick="doAction('create_referral')">📤 Create Referral</button>
+        <button class="btn btn-secondary" style="grid-column:span 2" onclick="doAction('resolved')">✔️ Mark Resolved</button>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="form-group">
+      <label class="form-label">📝 Officer Note</label>
+      <textarea class="note-area" id="officer-note" placeholder="Add your observation or recommendation…"></textarea>
+    </div>
+
+    <!-- Follow-up days -->
+    <div class="form-group">
+      <label class="form-label">📅 Follow-up In</label>
+      <div class="followup-grid">
+        <div class="fu-btn" onclick="setFollowup(3,this)">3 days</div>
+        <div class="fu-btn active" onclick="setFollowup(7,this)">7 days</div>
+        <div class="fu-btn" onclick="setFollowup(14,this)">14 days</div>
+      </div>
+    </div>
+
+    <!-- Submit review -->
+    <button class="btn btn-primary w-100" onclick="submitReview()">
+      Submit Review
+    </button>
+
+    <hr />
+
+    <!-- Audit timeline -->
+    <div>
+      <div class="panel-section-title">Audit Timeline</div>
+      <div class="timeline" id="panel-timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot green">📷</div>
+          <div class="timeline-content">
+            <div class="timeline-text">Observation submitted</div>
+            <div class="timeline-time" id="tl-submitted">—</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot amber">🤖</div>
+          <div class="timeline-content">
+            <div class="timeline-text">AI analysis completed</div>
+            <div class="timeline-time" id="tl-ai">—</div>
+          </div>
+        </div>
+        <div class="timeline-item" id="tl-officer-item" style="display:none">
+          <div class="timeline-dot green">👤</div>
+          <div class="timeline-content">
+            <div class="timeline-text" id="tl-officer-action">Officer reviewed</div>
+            <div class="timeline-time" id="tl-officer">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.side-panel-body -->
+</div><!-- /.side-panel -->
+
+<!-- ── Loading overlay ────────────────────────────────────── -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p style="color:var(--text-muted); font-size:0.9rem;">Processing…</p>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script src="/static/app.js"></script>
+<script src="/static/officer.js"></script>
+<script>
+/* ── State ────────────────────────────────────────────────── */
+const officerState = {
+  activeFilter: 'all',
+  activeCaseId: null,
+  followupDays: 7,
+  selectedAction: null,
+  allCases: [],
+};
+
+/* ── Init ─────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  loadQueue();
+  loadMarketPrices();
+});
+
+/* ── Stats ────────────────────────────────────────────────── */
+async function loadStats() {
+  try {
+    const res = await fetch('/api/v1/officer/stats');
+    if (!res.ok) throw new Error('stats failed');
+    const d = await res.json();
+    document.getElementById('stat-nr-val').textContent     = d.needs_review   ?? '—';
+    document.getElementById('stat-needs-review').textContent = d.needs_review ?? '—';
+    document.getElementById('stat-sv-val').textContent     = d.severe         ?? '—';
+    document.getElementById('stat-severe').textContent     = d.severe         ?? '—';
+    document.getElementById('stat-fu-val').textContent     = d.followup_due   ?? '—';
+    document.getElementById('stat-followup').textContent   = d.followup_due   ?? '—';
+    document.getElementById('stat-tc-val').textContent     = d.total          ?? '—';
+    document.getElementById('stat-total').textContent      = d.total          ?? '—';
+  } catch {
+    // Populate with placeholder demo data
+    ['stat-nr-val','stat-sv-val','stat-fu-val','stat-tc-val'].forEach((id,i) => {
+      document.getElementById(id).textContent = ['12','4','7','148'][i];
+    });
+    ['stat-needs-review','stat-severe','stat-followup','stat-total'].forEach((id,i) => {
+      document.getElementById(id).textContent = ['12','4','7','148'][i];
+    });
+  }
+}
+
+/* ── Queue ────────────────────────────────────────────────── */
+async function loadQueue() {
+  const tbody = document.getElementById('queue-body');
+  try {
+    const res = await fetch('/api/v1/officer/queue');
+    if (!res.ok) throw new Error();
+    const { cases } = await res.json();
+    officerState.allCases = cases || [];
+    renderQueue(officerState.allCases);
+  } catch {
+    // Demo rows
+    officerState.allCases = [
+      { id:'OBS-001', crop:'Tomato',  district:'Bengaluru', severity:'critical', status:'needs_review', score:87, age:'2h',  photo:null,
+        prediction:'Early Blight', confidence:87, weather:'Post-rain humid',
+        reasoning:'High confidence early blight detected. Visible concentric lesions on lower leaves match Alternaria solani patterns. Recent rainfall (28mm) increases risk.',
+        evidence:{visual:88,symptom:80,weather:75,seasonal:60,trap:40,historical:70},
+        missing:['Trap count','Field survey'], timeline:{submitted:'2 h ago',ai:'1.5 h ago'}
+      },
+      { id:'OBS-002', crop:'Potato',  district:'Tumkur',    severity:'high',     status:'monitor',      score:62, age:'5h',  photo:null,
+        prediction:'Late Blight', confidence:72, weather:'Cloudy',
+        reasoning:'Late blight suspected based on symptom pattern. Moderate confidence due to image quality.',
+        evidence:{visual:70,symptom:75,weather:55,seasonal:65,trap:30,historical:60},
+        missing:['Better image'], timeline:{submitted:'5 h ago',ai:'4.5 h ago'}
+      },
+      { id:'OBS-003', crop:'Grape',   district:'Kolar',     severity:'low',      status:'low_risk',     score:30, age:'1d',  photo:null,
+        prediction:'Powdery Mildew', confidence:60, weather:'Dry',
+        reasoning:'Low-risk powdery mildew. Monitor weekly.',
+        evidence:{visual:55,symptom:60,weather:40,seasonal:70,trap:20,historical:50},
+        missing:['Humidity data'], timeline:{submitted:'1 day ago',ai:'23 h ago'}
+      },
+      { id:'OBS-004', crop:'Corn',    district:'Mysuru',    severity:'unknown',  status:'resolved',     score:15, age:'3d',  photo:null,
+        prediction:'Healthy', confidence:92, weather:'Sunny',
+        reasoning:'No disease detected. Plant appears healthy.',
+        evidence:{visual:90,symptom:85,weather:60,seasonal:50,trap:10,historical:80},
+        missing:[], timeline:{submitted:'3 days ago',ai:'3 days ago'}
+      },
+    ];
+    renderQueue(officerState.allCases);
+  }
+}
+
+function renderQueue(cases) {
+  const tbody = document.getElementById('queue-body');
+  const filtered = officerState.activeFilter === 'all'
+    ? cases
+    : cases.filter(c => c.status === officerState.activeFilter);
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No cases match this filter.</td></tr>';
+    return;
+  }
+
+  const statusConfig = {
+    needs_review: { dot: 'var(--red)',   label: 'Needs Review' },
+    monitor:      { dot: 'var(--amber)', label: 'Monitor' },
+    low_risk:     { dot: '#4ade80',      label: 'Low-Risk' },
+    resolved:     { dot: 'var(--text-dim)', label: 'Resolved' },
+  };
+
+  const sevBadge = { critical:'badge-red', high:'badge-amber', low:'badge-green', unknown:'badge-grey' };
+
+  tbody.innerHTML = filtered.map(c => {
+    const sc = statusConfig[c.status] || { dot:'var(--text-dim)', label: c.status };
+    const bc = sevBadge[c.severity] || 'badge-grey';
+    return `
+      <tr onclick="openPanel('${c.id}')">
+        <td>${c.id}</td>
+        <td>${c.crop}</td>
+        <td>${c.district}</td>
+        <td><span class="badge ${bc}">${c.severity}</span></td>
+        <td>
+          <span class="status-dot" style="background:${sc.dot}"></span>
+          ${sc.label}
+        </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="score-bar-wrap" style="width:60px">
+              <div class="score-bar ${c.score>=70?'green':c.score>=40?'amber':'red'}"
+                   style="width:${c.score}%"></div>
+            </div>
+            <span style="font-size:0.8rem;font-weight:700;color:var(--text)">${c.score}</span>
+          </div>
+        </td>
+        <td style="color:var(--text-muted);font-size:0.82rem">${c.age}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openPanel('${c.id}')">
+            Review →
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+/* ── Filter ───────────────────────────────────────────────── */
+function applyFilter(filter, el) {
+  officerState.activeFilter = filter;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderQueue(officerState.allCases);
+}
+
+/* ── Side panel ───────────────────────────────────────────── */
+function openPanel(id) {
+  const c = officerState.allCases.find(x => x.id === id);
+  if (!c) return;
+  officerState.activeCaseId = id;
+
+  document.getElementById('panel-title').textContent = `Case #${c.id}`;
+
+  // Photo
+  const photoWrap = document.getElementById('panel-photo-wrap');
+  if (c.photo) {
+    document.getElementById('panel-photo').src = `/media/${c.photo}`;
+    photoWrap.classList.remove('hidden');
+  } else {
+    photoWrap.classList.add('hidden');
+  }
+
+  // Quality (use case quality or default)
+  const qEl = document.getElementById('panel-quality');
+  const qClass = c.quality_ok === false ? 'quality-bad' : c.quality_warn ? 'quality-warn' : 'quality-good';
+  const qIcon  = c.quality_ok === false ? '❌' : c.quality_warn ? '⚠️' : '✅';
+  qEl.className = `quality-card ${qClass}`;
+  qEl.textContent = `${qIcon} ${c.quality_message || 'Image quality acceptable'}`;
+
+  // Prediction
+  document.getElementById('panel-prediction').textContent  = c.prediction || '—';
+  document.getElementById('panel-confidence').textContent  = c.confidence ? `${c.confidence}%` : '—';
+  document.getElementById('panel-conf-bar').style.width    = `${c.confidence || 0}%`;
+
+  // Evidence
+  const ev = c.evidence || {};
+  const evFields = ['visual','symptom','weather','seasonal','trap','hist'];
+  const evKeys   = ['visual','symptom','weather','seasonal','trap','historical'];
+  evFields.forEach((f, i) => {
+    const val = ev[evKeys[i]] ?? '—';
+    document.getElementById(`ev-${f}`).textContent          = val !== '—' ? `${val}%` : '—';
+    document.getElementById(`ev-${f}-bar`).style.width      = val !== '—' ? `${val}%` : '0%';
+  });
+
+  // Weather
+  document.getElementById('panel-weather-desc').textContent   = c.weather || '—';
+  document.getElementById('panel-weather-detail').textContent = c.weather_detail || '—';
+  const freshBadge = document.getElementById('panel-weather-freshness');
+  freshBadge.textContent  = c.weather_fresh ? 'Live' : 'Stale';
+  freshBadge.className    = `badge ${c.weather_fresh ? 'badge-live' : 'badge-stale'}`;
+
+  // Reasoning
+  document.getElementById('panel-reasoning').textContent = c.reasoning || 'No reasoning available.';
+
+  // Missing
+  const missingEl = document.getElementById('panel-missing');
+  const missingWrap = document.getElementById('panel-missing-wrap');
+  if (c.missing && c.missing.length) {
+    missingEl.innerHTML = c.missing.map(m => `<span class="missing-badge">⚠️ ${m}</span>`).join('');
+    missingWrap.style.display = '';
+  } else {
+    missingWrap.style.display = 'none';
+  }
+
+  // Timeline
+  document.getElementById('tl-submitted').textContent = c.timeline?.submitted || '—';
+  document.getElementById('tl-ai').textContent        = c.timeline?.ai        || '—';
+  if (c.timeline?.officer) {
+    document.getElementById('tl-officer-item').style.display = '';
+    document.getElementById('tl-officer').textContent = c.timeline.officer;
+    document.getElementById('tl-officer-action').textContent = c.timeline.officer_action || 'Officer reviewed';
+  } else {
+    document.getElementById('tl-officer-item').style.display = 'none';
+  }
+
+  // Reset inputs
+  document.getElementById('officer-note').value = '';
+  officerState.selectedAction = null;
+  officerState.followupDays = 7;
+  document.querySelectorAll('.fu-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.fu-btn:nth-child(2)').classList.add('active');
+
+  document.getElementById('side-panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('show');
+}
+
+function closePanel() {
+  document.getElementById('side-panel').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('show');
+  officerState.activeCaseId = null;
+}
+
+/* ── Action buttons ───────────────────────────────────────── */
+function doAction(action) {
+  officerState.selectedAction = action;
+  document.querySelectorAll('.action-btn-grid .btn').forEach(b => b.style.outline = '');
+  event.target.style.outline = '2px solid var(--green)';
+  showToast(`Action selected: ${action.replace(/_/g,' ')}`, 'green');
+}
+
+/* ── Follow-up ────────────────────────────────────────────── */
+function setFollowup(days, el) {
+  officerState.followupDays = days;
+  document.querySelectorAll('.fu-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ── Submit review ────────────────────────────────────────── */
+async function submitReview() {
+  if (!officerState.activeCaseId) return;
+  if (!officerState.selectedAction) { showToast('Please select an action first.', 'red'); return; }
+
+  const payload = {
+    case_id:     officerState.activeCaseId,
+    action:      officerState.selectedAction,
+    note:        document.getElementById('officer-note').value.trim(),
+    followup_days: officerState.followupDays,
+  };
+
+  document.getElementById('loading-overlay').classList.add('show');
+
+  try {
+    const res = await fetch('/api/v1/officer/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    document.getElementById('loading-overlay').classList.remove('show');
+    if (res.ok) {
+      showToast(`Case ${officerState.activeCaseId} reviewed successfully.`, 'green');
+      closePanel();
+      loadQueue();
+      loadStats();
+    } else {
+      const d = await res.json();
+      showToast(d.message || 'Review submission failed.', 'red');
+    }
+  } catch {
+    document.getElementById('loading-overlay').classList.remove('show');
+    showToast('Network error — review not saved.', 'red');
+  }
+}
+
+/* ── Market prices ────────────────────────────────────────── */
+async function loadMarketPrices() {
+  try {
+    const res = await fetch('/api/v1/market/prices');
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    const map = { tomato:'mp-tomato', potato:'mp-potato', corn:'mp-corn',
+                  pepper:'mp-pepper', grape:'mp-grape', soybean:'mp-soybean' };
+    Object.entries(map).forEach(([k,id]) => {
+      if (d[k]) document.getElementById(id).textContent = `₹${d[k]}/q`;
+    });
+  } catch {
+    // Demo prices
+    const demo = { 'mp-tomato':'₹1,240/q','mp-potato':'₹880/q','mp-corn':'₹2,100/q',
+                   'mp-pepper':'₹4,500/q','mp-grape':'₹3,200/q','mp-soybean':'₹5,000/q' };
+    Object.entries(demo).forEach(([id,val]) => { document.getElementById(id).textContent = val; });
+  }
+}
+
+/* ── Language setter ──────────────────────────────────────── */
+function setLang(lang) {
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  currentLanguage = lang;
+  localStorage.setItem('pp_lang', lang);
+}
+
+/* ── Toast ────────────────────────────────────────────────── */
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type || ''}`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

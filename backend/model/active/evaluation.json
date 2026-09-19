@@ -1,0 +1,59 @@
+{
+  "test_accuracy": 0.7954545454545454,
+  "macro_f1": 0.7941989119139312,
+  "macro_precision": 0.8222587719298246,
+  "macro_recall": 0.7954545454545454,
+  "classification_report": {
+    "Tomato___Bacterial_spot": {
+      "precision": 0.9473684210526315,
+      "recall": 0.8181818181818182,
+      "f1-score": 0.8780487804878049,
+      "support": 22.0
+    },
+    "Tomato___Early_blight": {
+      "precision": 0.875,
+      "recall": 0.6363636363636364,
+      "f1-score": 0.7368421052631579,
+      "support": 22.0
+    },
+    "Tomato___Septoria_leaf_spot": {
+      "precision": 0.8,
+      "recall": 0.7272727272727273,
+      "f1-score": 0.7619047619047619,
+      "support": 22.0
+    },
+    "Tomato___Target_Spot": {
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1-score": 0.8,
+      "support": 22.0
+    },
+    "accuracy": 0.7954545454545454,
+    "macro avg": {
+      "precision": 0.8222587719298246,
+      "recall": 0.7954545454545454,
+      "f1-score": 0.7941989119139312,
+      "support": 88.0
+    },
+    "weighted avg": {
+      "precision": 0.8222587719298246,
+      "recall": 0.7954545454545454,
+      "f1-score": 0.7941989119139311,
+      "support": 88.0
+    }
+  },
+  "num_test_images": 88,
+  "class_names": [
+    "Tomato___Bacterial_spot",
+    "Tomato___Early_blight",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Target_Spot"
+  ],
+  "model_version": "v1.0.0",
+  "dataset_name": "PlantVillage",
+  "dataset_version": "github-spMohanty-2026-09",
+  "crop_scope": "Tomato",
+  "split_note": "Held-out test split from the documented dataset; not Maharashtra field validation.",
+  "review_below_confidence": 0.8,
+  "unknown_below_confidence": 0.55
+}

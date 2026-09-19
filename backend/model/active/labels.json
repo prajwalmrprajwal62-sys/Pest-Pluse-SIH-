@@ -1,0 +1,21 @@
+{
+  "label_map_version": "pestpulse-labels-v1",
+  "labels": [
+    {
+      "class_id": "Tomato___Bacterial_spot",
+      "display_name": "Tomato   Bacterial spot"
+    },
+    {
+      "class_id": "Tomato___Early_blight",
+      "display_name": "Tomato   Early blight"
+    },
+    {
+      "class_id": "Tomato___Septoria_leaf_spot",
+      "display_name": "Tomato   Septoria leaf spot"
+    },
+    {
+      "class_id": "Tomato___Target_Spot",
+      "display_name": "Tomato   Target Spot"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "preprocessing_version": "pestpulse-preprocess-v1",
+  "color_mode": "RGB",
+  "resize": [
+    224,
+    224
+  ],
+  "resize_method": "bilinear",
+  "scale": "embedded_mobilenet_v2_preprocess_input",
+  "dtype": "float32",
+  "input_shape": [
+    1,
+    224,
+    224,
+    3
+  ],
+  "augmentation_inference": "disabled_by_training_model_call"
+}
