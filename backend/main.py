@@ -13,6 +13,7 @@ from backend.api.officer import router as officer_router
 from backend.api.providers import router as provider_router
 from backend.api.quick_infer import router as infer_router
 from backend.api.voice import router as voice_router
+from backend.api.field_intel import router as field_router
 
 app = FastAPI(
     title="PestPulse",
@@ -35,6 +36,7 @@ app.include_router(officer_router)
 app.include_router(provider_router)
 app.include_router(infer_router)
 app.include_router(voice_router)
+app.include_router(field_router)
 
 # ── Startup ───────────────────────────────────────────────────────────────────
 @app.on_event("startup")

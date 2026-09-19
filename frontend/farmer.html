@@ -185,6 +185,9 @@
   <button class="tab-btn" data-tab="kvk" onclick="switchTab('kvk')">
     <span class="tab-em">📞</span><span class="tab-lbl" data-ik="tab.kvk">KVK Helpline</span>
   </button>
+  <button class="tab-btn" data-tab="field" onclick="switchTab('field')">
+    <span class="tab-em">🌍</span><span class="tab-lbl" data-ik="tab.field">My Field</span>
+  </button>
   <button class="tab-btn" data-tab="tips" onclick="switchTab('tips')">
     <span class="tab-em">💡</span><span class="tab-lbl" data-ik="tab.tips">Tips</span>
   </button>
@@ -381,7 +384,43 @@
   </div>
 </div>
 
-<!-- ══════════════════════ TAB 3: KVK HELPLINE ══════════════════════ -->
+<!-- ══════════════════════ TAB 3: FOLLOW-UP ══════════════════════ -->
+<div class="tab-pane" id="tab-followup">
+  <div class="page-header">
+    <h2>🔁 Follow-up</h2>
+    <p id="fu-subtitle">Record how your crop is doing after a previous scan.</p>
+  </div>
+
+  <!-- Case picker -->
+  <div style="margin-bottom:18px">
+    <div class="sec-hdr">📋 SELECT A PREVIOUS CASE</div>
+    <div id="fu-case-list">
+      <div style="text-align:center;padding:24px;color:var(--text-muted)">🔄 Loading cases…</div>
+    </div>
+  </div>
+
+  <!-- Outcome (shown after case selected) -->
+  <div id="fu-outcome-section" style="display:none">
+    <div class="sec-hdr">🌿 HOW IS THE CROP NOW?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px" id="fu-outcome-grid">
+      <div class="icon-option" data-val="IMPROVED"  onclick="pickFuOutcome(this)"><span class="icon-em">📈</span><span class="icon-label" data-ik="fu.improved">Improved</span></div>
+      <div class="icon-option" data-val="STABLE"    onclick="pickFuOutcome(this)"><span class="icon-em">➖</span><span class="icon-label" data-ik="fu.stable">Stable</span></div>
+      <div class="icon-option" data-val="WORSE"     onclick="pickFuOutcome(this)"><span class="icon-em">📉</span><span class="icon-label" data-ik="fu.worse">Worse</span></div>
+      <div class="icon-option" data-val="UNCLEAR"   onclick="pickFuOutcome(this)"><span class="icon-em">❓</span><span class="icon-label" data-ik="fu.unclear">Not Sure</span></div>
+    </div>
+
+    <div class="sec-hdr">📝 NOTE (OPTIONAL)</div>
+    <textarea id="fu-note" class="form-input" style="min-height:72px;resize:vertical;margin-bottom:16px"
+      placeholder="Any additional observation…"></textarea>
+
+    <button class="btn btn-primary w-100" onclick="submitFollowUp()" id="fu-submit-btn">
+      <span data-ik="fu.submit">Submit Follow-up</span>
+    </button>
+    <div id="fu-result" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 4: KVK HELPLINE ══════════════════════ -->
 <div class="tab-pane" id="tab-kvk">
   <div class="page-header">
     <h2>📞 KVK Helpline</h2>
@@ -392,7 +431,7 @@
   </div>
 </div>
 
-<!-- ══════════════════════ TAB 4: TIPS ══════════════════════ -->
+<!-- ══════════════════════ TAB 5: TIPS ══════════════════════ -->
 <div class="tab-pane" id="tab-tips">
   <div class="page-header">
     <h2>💡 Crop Tips</h2>
@@ -401,6 +440,116 @@
   <div id="tips-list">
     <!-- Injected by JS -->
   </div>
+</div>
+
+<!-- ══════════════════════ TAB 6: MY FIELD ══════════════════════ -->
+<div class="tab-pane" id="tab-field" style="max-width:680px;margin:0 auto;padding:16px">
+  <div class="page-header">
+    <h2>🌍 My Field Intelligence</h2>
+    <p id="field-sub">Soil health, crop suitability &amp; disease risk for your location.</p>
+  </div>
+
+  <!-- Location bar -->
+  <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:0.82rem;color:var(--text-muted)">
+    <span>📍</span>
+    <span id="field-loc-text">Waiting for GPS…</span>
+    <button class="btn btn-ghost btn-sm" onclick="loadFieldIntel()" style="margin-left:auto;font-size:0.75rem">🔄 Refresh</button>
+  </div>
+
+  <div id="field-loading" style="text-align:center;padding:40px;color:var(--text-muted)">
+    <div style="font-size:2.5rem">🔄</div>
+    <p style="margin-top:8px">Loading field data…</p>
+    <p style="font-size:0.72rem;margin-top:4px;color:var(--text-dim)">Fetching from SoilGrids (ISRIC) + Open-Meteo</p>
+  </div>
+
+  <div id="field-data" style="display:none">
+
+    <!-- Soil card -->
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="sec-hdr" style="margin-bottom:0">🪱 SOIL PROFILE</div>
+        <span id="soil-source-badge" style="font-size:0.65rem;border-radius:10px;padding:2px 8px;background:var(--green-glow);color:var(--green);border:1px solid var(--green-border)">LIVE</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:var(--bg-card-2);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--text)" id="soil-ph">—</div>
+          <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">Soil pH</div>
+          <div style="font-size:0.62rem;color:var(--text-dim)" id="soil-ph-note">—</div>
+        </div>
+        <div style="background:var(--bg-card-2);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:1rem;font-weight:800;color:var(--text);line-height:1.3" id="soil-type-lbl">—</div>
+          <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">Soil Type</div>
+        </div>
+        <div style="background:var(--bg-card-2);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:900" id="soil-fertility-num">—</div>
+          <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">Fertility Score /100</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-top:2px" id="soil-fertility-lbl">—</div>
+        </div>
+        <div style="background:var(--bg-card-2);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:1rem;font-weight:800;color:var(--text)" id="soil-water">—</div>
+          <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">Water Retention</div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">
+          <span>Fertility</span><span id="soil-fert-pct">—</span>
+        </div>
+        <div style="height:8px;background:var(--border);border-radius:4px">
+          <div id="soil-fert-bar" style="height:8px;border-radius:4px;width:0%;transition:width 0.9s ease;background:var(--green)"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:0.74rem;color:var(--text-muted);flex-wrap:wrap">
+        <span>🧱 Clay: <strong id="soil-clay">—</strong>%</span>
+        <span>🏖️ Sand: <strong id="soil-sand">—</strong>%</span>
+        <span>🌿 Org.Carbon: <strong id="soil-soc">—</strong> g/kg</span>
+        <span>⚗️ Nitrogen: <strong id="soil-n">—</strong> cg/kg</span>
+      </div>
+    </div>
+
+    <!-- Disease risk -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="sec-hdr" style="margin-bottom:10px">🦠 DISEASE RISK (SOIL + WEATHER)</div>
+      <div id="disease-risk-list"></div>
+    </div>
+
+    <!-- Nearby hotspots -->
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="sec-hdr" style="margin-bottom:0">🔥 ACTIVE HOTSPOTS IN YOUR REGION</div>
+        <span id="hotspot-days-lbl" style="font-size:0.65rem;color:var(--text-dim)">last 30 days</span>
+      </div>
+      <div id="hotspot-list">
+        <div style="text-align:center;padding:16px;color:var(--text-dim);font-size:0.8rem">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Crop recommendations -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="sec-hdr" style="margin-bottom:10px">🌾 CROPS SUITED TO YOUR SOIL &amp; CLIMATE</div>
+      <div id="crop-rec-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+      <p style="font-size:0.68rem;color:var(--text-dim);margin-top:10px">Based on soil pH, type &amp; local temperature — ICAR Karnataka crop compatibility matrix.</p>
+    </div>
+
+    <!-- Weather detail -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="sec-hdr" style="margin-bottom:10px">🌡️ CURRENT WEATHER CONDITIONS</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="background:var(--bg-card-2);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--text)" id="wf-temp">—</div>
+          <div style="font-size:0.65rem;color:var(--text-muted)">Temperature</div>
+        </div>
+        <div style="background:var(--bg-card-2);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--text)" id="wf-humid">—</div>
+          <div style="font-size:0.65rem;color:var(--text-muted)">Humidity</div>
+        </div>
+        <div style="background:var(--bg-card-2);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--text)" id="wf-rain">—</div>
+          <div style="font-size:0.65rem;color:var(--text-muted)">Rainfall</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /field-data -->
 </div>
 
 <!-- Loading overlay -->
@@ -415,7 +564,7 @@
 /* ── i18n dictionary ───────────────────────────────────────── */
 const LABELS = {
   en: {
-    'tab.scan':'Scan','tab.history':'My Reports','tab.kvk':'KVK Helpline','tab.tips':'Tips',
+    'tab.scan':'Scan','tab.history':'My Reports','tab.followup':'Follow-up','tab.kvk':'KVK Helpline','tab.field':'My Field','tab.tips':'Tips',
     'crop.tomato':'Tomato','crop.potato':'Potato','crop.corn_maize':'Corn','crop.grape':'Grape',
     'crop.bell_pepper':'Pepper','crop.strawberry':'Strawberry','crop.orange':'Orange',
     'crop.soybean':'Soybean','crop.apple':'Apple','crop.other':'Other',
@@ -425,21 +574,23 @@ const LABELS = {
     'sym.leaf_curling':'Leaf Curling','sym.holes':'Holes / Eaten',
     'sym.powder':'White Powder','sym.stem_rot':'Stem Rot','sym.healthy':'Looks Healthy',
     'sev.almost_all':'Almost All','sev.many':'Many','sev.few':'A Few','sev.unknown':'Not Sure',
+    'area.few_plants':'A Few Plants','area.one_part':'One Part','area.much_of_field':'Much of Field','area.not_sure':'Not Sure',
     'rain.yes':'Yes, it rained','rain.no':'No rain',
     'trap.label':'🪤 Optional: pest trap count',
     'btn.back':'← Back','btn.next':'Next →','btn.submit':'Submit for Analysis',
     'lbl-crop':'CROP TYPE','lbl-stage':'GROWTH STAGE','lbl-symptom':'WHAT DO YOU SEE?',
     'lbl-severity':'HOW MANY PLANTS AFFECTED?','lbl-rain':'RAIN IN LAST 48H?',
-    'lbl-known':'COMMON ISSUES FOR THIS CROP',
+    'lbl-area':'HOW MUCH OF THE FIELD IS AFFECTED?','lbl-known':'COMMON ISSUES FOR THIS CROP',
     's1-title':'📷 Upload Leaf Photo','s1-sub':'Snap a close-up. AI will instantly detect the disease.',
     'upload-cta':'Tap to capture or upload','upload-sub':'JPG · PNG · WEBP · Camera',
     's2-title':'✏️ Confirm Details','s2-sub':'AI pre-filled what it detected. Correct if needed.',
     's3-title':'Confirm & Submit','s3-disc':'AI screening signal only — not a confirmed diagnosis.',
     'step1-next-lbl':'Next →','mic-btn-lbl':'Speak','ai-disc':'Tap options below to change anything.',
     'sl-1':'Photo','sl-2':'Confirm','sl-3':'Submit',
+    'fu.improved':'Improved','fu.stable':'Stable','fu.worse':'Worse','fu.unclear':'Not Sure','fu.submit':'Submit Follow-up',
   },
   kn: {
-    'tab.scan':'ಸ್ಕ್ಯಾನ್','tab.history':'ವರದಿಗಳು','tab.kvk':'KVK ಸಹಾಯ','tab.tips':'ಸಲಹೆ',
+    'tab.scan':'ಸ್ಕ್ಯಾನ್','tab.history':'ವರದಿಗಳು','tab.followup':'ಅನುಸರಣೆ','tab.kvk':'KVK ಸಹಾಯ','tab.field':'ನನ್ನ ಜಮೀನು','tab.tips':'ಸಲಹೆ',
     'crop.tomato':'ಟೊಮೇಟೊ','crop.potato':'ಆಲೂಗಡ್ಡೆ','crop.corn_maize':'ಮೆಕ್ಕೆ ಜೋಳ',
     'crop.grape':'ದ್ರಾಕ್ಷಿ','crop.bell_pepper':'ಕ್ಯಾಪ್ಸಿಕಂ','crop.strawberry':'ಸ್ಟ್ರಾಬೆರಿ',
     'crop.orange':'ಕಿತ್ತಳೆ','crop.soybean':'ಸೋಯಾಬೀನ್','crop.apple':'ಸೇಬು','crop.other':'ಇತರ',
@@ -449,21 +600,23 @@ const LABELS = {
     'sym.leaf_curling':'ಎಲೆ ಸುರುಳಿ','sym.holes':'ರಂಧ್ರ / ತಿನ್ನುವಿಕೆ',
     'sym.powder':'ಬಿಳಿ ಹಿಟ್ಟು','sym.stem_rot':'ಕಾಂಡ ಕೊಳೆ','sym.healthy':'ಆರೋಗ್ಯಕರ',
     'sev.almost_all':'ಬಹುತೇಕ ಎಲ್ಲಾ','sev.many':'ಹೆಚ್ಚು','sev.few':'ಕೆಲವು','sev.unknown':'ತಿಳಿದಿಲ್ಲ',
+    'area.few_plants':'ಕೆಲವು ಸಸ್ಯಗಳು','area.one_part':'ಒಂದು ಭಾಗ','area.much_of_field':'ಹೆಚ್ಚಿನ ಜಮೀನು','area.not_sure':'ಗೊತ್ತಿಲ್ಲ',
     'rain.yes':'ಹೌದು, ಮಳೆ ಬಿದ್ದಿದೆ','rain.no':'ಇಲ್ಲ, ಒಣಗಿದೆ',
     'trap.label':'🪤 ಐಚ್ಛಿಕ: ಕೀಟ ಬಲೆ ಸಂಖ್ಯೆ',
     'btn.back':'← ಹಿಂದೆ','btn.next':'ಮುಂದೆ →','btn.submit':'ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಸಲ್ಲಿಸಿ',
     'lbl-crop':'ಬೆಳೆ ವಿಧ','lbl-stage':'ಬೆಳವಣಿಗೆ ಹಂತ','lbl-symptom':'ನೀವು ಏನು ನೋಡುತ್ತಿದ್ದೀರಿ?',
     'lbl-severity':'ಎಷ್ಟು ಸಸ್ಯಗಳು ಬಾಧಿತ?','lbl-rain':'ಕಳೆದ 48 ಗಂಟೆ ಮಳೆ ಬಿದ್ದಿದೆಯೇ?',
-    'lbl-known':'ಈ ಬೆಳೆಗೆ ಸಾಮಾನ್ಯ ರೋಗಗಳು',
+    'lbl-area':'ಜಮೀನಿನ ಎಷ್ಟು ಭಾಗ ಬಾಧಿತ?','lbl-known':'ಈ ಬೆಳೆಗೆ ಸಾಮಾನ್ಯ ರೋಗಗಳು',
     's1-title':'📷 ಎಲೆ ಫೋಟೊ ಅಪ್ಲೋಡ್ ಮಾಡಿ','s1-sub':'ಸ್ಪಷ್ಟ ಫೋಟೊ ತೆಗೆಯಿರಿ. AI ರೋಗ ಪತ್ತೆ ಮಾಡುತ್ತದೆ.',
     'upload-cta':'ಒತ್ತಿ ಅಪ್ಲೋಡ್ ಮಾಡಿ','upload-sub':'JPG · PNG · WEBP · ಕ್ಯಾಮೆರಾ',
     's2-title':'✏️ ವಿವರ ಖಚಿತಪಡಿಸಿ','s2-sub':'AI ಪತ್ತೆ ಮಾಡಿದ ಮಾಹಿತಿ ತೋರಿಸಲಾಗಿದೆ.',
     's3-title':'ದೃಢಪಡಿಸಿ ಮತ್ತು ಸಲ್ಲಿಸಿ','s3-disc':'ಫಲಿತಾಂಶ AI ತಪಾಸಣಾ ಸಂಕೇತ, ರೋಗನಿರ್ಣಯ ಅಲ್ಲ.',
     'step1-next-lbl':'ಮುಂದೆ →','mic-btn-lbl':'ಮಾತನಾಡಿ','ai-disc':'ಬದಲಿಸಲು ಯಾವುದೇ ಆಯ್ಕೆ ಒತ್ತಿ.',
     'sl-1':'ಫೋಟೊ','sl-2':'ಖಚಿತ','sl-3':'ಸಲ್ಲಿಸಿ',
+    'fu.improved':'ಸುಧಾರಣೆ','fu.stable':'ಹಾಗೇ ಇದೆ','fu.worse':'ಹದಗೆಟ್ಟಿದೆ','fu.unclear':'ಗೊತ್ತಿಲ್ಲ','fu.submit':'ಅನುಸರಣೆ ಸಲ್ಲಿಸಿ',
   },
   hi: {
-    'tab.scan':'स्कैन','tab.history':'मेरी रिपोर्ट','tab.kvk':'KVK हेल्पलाइन','tab.tips':'सुझाव',
+    'tab.scan':'स्कैन','tab.history':'मेरी रिपोर्ट','tab.followup':'अनुवर्ती','tab.kvk':'KVK हेल्पलाइन','tab.field':'मेरा खेत','tab.tips':'सुझाव',
     'crop.tomato':'टमाटर','crop.potato':'आलू','crop.corn_maize':'मक्का','crop.grape':'अंगूर',
     'crop.bell_pepper':'शिमला मिर्च','crop.strawberry':'स्ट्रॉबेरी','crop.orange':'संतरा',
     'crop.soybean':'सोयाबीन','crop.apple':'सेब','crop.other':'अन्य',
@@ -473,18 +626,20 @@ const LABELS = {
     'sym.leaf_curling':'पत्ती मुड़ना','sym.holes':'छेद / कटाव',
     'sym.powder':'सफेद चूर्ण','sym.stem_rot':'तने का सड़ना','sym.healthy':'स्वस्थ दिखे',
     'sev.almost_all':'लगभग सब','sev.many':'बहुत','sev.few':'कुछ','sev.unknown':'पता नहीं',
+    'area.few_plants':'कुछ पौधे','area.one_part':'एक भाग','area.much_of_field':'अधिकांश खेत','area.not_sure':'पता नहीं',
     'rain.yes':'हाँ, बारिश हुई','rain.no':'नहीं, सूखा है',
     'trap.label':'🪤 वैकल्पिक: कीट जाल संख्या',
     'btn.back':'← वापस','btn.next':'अगला →','btn.submit':'विश्लेषण के लिए जमा करें',
     'lbl-crop':'फसल का प्रकार','lbl-stage':'विकास चरण','lbl-symptom':'आप क्या देख रहे हैं?',
     'lbl-severity':'कितने पौधे प्रभावित?','lbl-rain':'पिछले 48 घंटे बारिश?',
-    'lbl-known':'इस फसल की सामान्य बीमारियाँ',
+    'lbl-area':'खेत का कितना भाग प्रभावित?','lbl-known':'इस फसल की सामान्य बीमारियाँ',
     's1-title':'📷 पत्ती की फ़ोटो अपलोड करें','s1-sub':'स्पष्ट फ़ोटो लें। AI रोग पहचानेगा।',
     'upload-cta':'टैप करके अपलोड करें','upload-sub':'JPG · PNG · WEBP · कैमरा',
     's2-title':'✏️ विवरण की पुष्टि करें','s2-sub':'AI ने जो पहचाना वह भरा है।',
     's3-title':'पुष्टि करें और जमा करें','s3-disc':'परिणाम AI संकेत है, पक्का निदान नहीं।',
     'step1-next-lbl':'अगला →','mic-btn-lbl':'बोलें','ai-disc':'बदलने के लिए कोई विकल्प टैप करें।',
     'sl-1':'फ़ोटो','sl-2':'पुष्टि','sl-3':'जमा',
+    'fu.improved':'सुधार हुआ','fu.stable':'वही है','fu.worse':'बिगड़ गया','fu.unclear':'पता नहीं','fu.submit':'अनुवर्ती जमा करें',
   }
 };
 
@@ -605,9 +760,10 @@ function setLang(lang) {
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-'+tab));
-  if (tab === 'history') loadHistory();
-  if (tab === 'kvk')     loadKVK();
-  if (tab === 'tips')    renderTips();
+  if (tab === 'history')  loadHistory();
+  if (tab === 'followup') loadFollowUpCases();
+  if (tab === 'kvk')      loadKVK();
+  if (tab === 'tips')     renderTips();
 }
 
 /* ── Step navigation ── */
@@ -629,10 +785,117 @@ function goStep(n) {
 }
 
 /* ── Form state ── */
-const form = { crop:null, growth_stage:null, symptom_group:null, severity:null, recent_rain:null, trap_count:null, lat:12.97, lon:77.59 };
+const form = { crop:null, growth_stage:null, symptom_group:null, severity:null, affected_area_band:null, recent_rain:null, trap_count:null, lat:12.97, lon:77.59 };
 let _aiDetected  = null;
 let _currentCrop = null;
 let selectedFile = null;
+
+/* ── Weather loader ── */
+async function loadWeather() {
+  try {
+    const r = await fetch('/api/v1/weather');
+    if (!r.ok) return;
+    const d = await r.json();
+    const cur = d.current || {};
+    const txt = document.getElementById('weather-text');
+    const badge = document.getElementById('weather-badge');
+    if (txt) {
+      const temp  = cur.temperature_c != null ? `${cur.temperature_c.toFixed(1)}°C` : '';
+      const humid = cur.relative_humidity_pct != null ? `${cur.relative_humidity_pct}% humidity` : '';
+      const rain  = cur.precipitation_mm > 0 ? ` · 🌧️ ${cur.precipitation_mm}mm` : '';
+      txt.textContent = [temp, humid].filter(Boolean).join(' · ') + rain || 'Weather loaded';
+      form.lat = d.latitude  || form.lat;
+      form.lon = d.longitude || form.lon;
+    }
+    if (badge) {
+      const freshness = d.freshness || 'DEMO';
+      const colors = { LIVE:'#00e676', STALE:'#f59e0b', DEMO:'#6366f1', UNAVAILABLE:'#ef4444' };
+      badge.textContent = freshness;
+      badge.style.background = (colors[freshness] || '#6366f1') + '22';
+      badge.style.color = colors[freshness] || '#6366f1';
+      badge.style.border = `1px solid ${colors[freshness] || '#6366f1'}55`;
+    }
+  } catch(_) {
+    const txt = document.getElementById('weather-text');
+    if (txt) txt.textContent = 'Weather unavailable';
+  }
+}
+
+/* ── Follow-up: load cases ── */
+let _fuSelectedCase = null;
+let _fuSelectedOutcome = null;
+
+async function loadFollowUpCases() {
+  const el = document.getElementById('fu-case-list');
+  if (!el) return;
+  try {
+    const r = await fetch('/api/v1/farmer/history?limit=20');
+    const d = await r.json();
+    const items = d.history || [];
+    if (!items.length) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)">📭 No previous scans found.</div>';
+      return;
+    }
+    el.innerHTML = items.map(obs => `
+      <div class="hist-card" onclick="selectFuCase('${obs.id}','${obs.crop||''}','${obs.status||''}')" style="flex-direction:column;align-items:flex-start;gap:4px">
+        <div style="display:flex;justify-content:space-between;width:100%">
+          <span style="font-weight:700;font-size:0.88rem">${obs.crop||'Unknown crop'}</span>
+          <span class="badge ${obs.status==='resolved'?'badge-green':obs.review_required?'badge-amber':'badge-blue'}">${obs.status||'pending'}</span>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">${obs.symptom_group||''} · ${obs.severity||''} · ${(obs.created_at||'').slice(0,10)}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">ID: ${(obs.id||'').slice(0,8)}</div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--red)">Error loading cases: ${e.message}</div>`;
+  }
+}
+
+function selectFuCase(id, crop, status) {
+  _fuSelectedCase = id;
+  _fuSelectedOutcome = null;
+  document.querySelectorAll('#fu-case-list .hist-card').forEach(c => {
+    c.style.borderColor = c.onclick?.toString().includes(id) ? 'var(--green)' : 'var(--border)';
+  });
+  document.getElementById('fu-outcome-section').style.display = 'block';
+  document.getElementById('fu-result').innerHTML = '';
+  document.querySelectorAll('#fu-outcome-grid .icon-option').forEach(o => o.classList.remove('selected'));
+}
+
+function pickFuOutcome(el) {
+  document.querySelectorAll('#fu-outcome-grid .icon-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  _fuSelectedOutcome = el.dataset.val;
+}
+
+async function submitFollowUp() {
+  if (!_fuSelectedCase)    { showToast('Please select a case first'); return; }
+  if (!_fuSelectedOutcome) { showToast('Please select an outcome'); return; }
+  const btn = document.getElementById('fu-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  try {
+    const r = await fetch('/api/v1/followups', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ observation_id: _fuSelectedCase, outcome: _fuSelectedOutcome, note: document.getElementById('fu-note').value || '' })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Failed');
+    document.getElementById('fu-result').innerHTML = `
+      <div style="background:var(--green-glow);border:1px solid var(--green);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:1.5rem">✅</div>
+        <div style="font-weight:700;color:var(--green);margin-top:6px">Follow-up submitted!</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">New status: ${d.new_status}</div>
+      </div>`;
+    _fuSelectedCase = null; _fuSelectedOutcome = null;
+  } catch(e) {
+    document.getElementById('fu-result').innerHTML = `<div style="color:var(--red);padding:10px">${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    const D = LABELS[currentLanguage] || LABELS.en;
+    btn.textContent = D['fu.submit'] || 'Submit Follow-up';
+  }
+}
 
 /* ── Icon pickers ── */
 window.pick = function(field, el) {
@@ -916,6 +1179,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setLang(currentLanguage);
   initGPS();
   goStep(1);
+  loadWeather();
   document.getElementById('trap-count')?.addEventListener('input', e => { form.trap_count = parseInt(e.target.value)||null; });
 });
 </script>
