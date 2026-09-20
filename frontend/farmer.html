@@ -290,17 +290,31 @@
       <span id="location-label" style="color:var(--text-muted)">Detecting location…</span>
     </div>
 
-    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+    <!-- Upload zone — shows two buttons on mobile so user can choose camera OR gallery -->
+    <div class="upload-zone" id="upload-zone">
       <div class="upload-icon">📷</div>
       <p><strong id="upload-cta">Tap to capture or upload</strong></p>
       <p style="font-size:0.75rem;color:var(--text-dim)" id="upload-sub">JPG · PNG · WEBP · Camera</p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-secondary" style="padding:8px 18px;font-size:0.85rem;" onclick="document.getElementById('file-input-camera').click()">
+          📸 <span data-i18n="btn.camera">Take Photo</span>
+        </button>
+        <button type="button" class="btn btn-secondary" style="padding:8px 18px;font-size:0.85rem;" onclick="document.getElementById('file-input-gallery').click()">
+          🖼 <span data-i18n="btn.gallery">Upload from Gallery</span>
+        </button>
+      </div>
     </div>
 
     <div class="upload-preview hidden" id="upload-preview">
       <img id="preview-img" src="" alt=""/>
       <button class="remove-btn" onclick="removeImage()">✕</button>
     </div>
-    <input type="file" id="file-input" accept="image/*" capture="camera" style="display:none" onchange="onFileSelected(event)"/>
+    <!-- Camera input: opens camera directly on mobile -->
+    <input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none" onchange="onFileSelected(event)"/>
+    <!-- Gallery input: opens file picker / photo library on mobile -->
+    <input type="file" id="file-input-gallery" accept="image/*" style="display:none" onchange="onFileSelected(event)"/>
+    <!-- Legacy single input for any code that still references it -->
+    <input type="file" id="file-input" accept="image/*" style="display:none" onchange="onFileSelected(event)"/>
 
     <!-- AI inference result -->
     <div id="infer-result" style="margin-top:12px"></div>
@@ -905,7 +919,8 @@ const LABELS = {
     'lbl-severity':'HOW MANY PLANTS AFFECTED?','lbl-rain':'RAIN IN LAST 48H?',
     'lbl-area':'HOW MUCH OF THE FIELD IS AFFECTED?','lbl-known':'COMMON ISSUES FOR THIS CROP',
     's1-title':'📷 Upload Leaf Photo','s1-sub':'Snap a close-up. AI will instantly detect the disease.',
-    'upload-cta':'Tap to capture or upload','upload-sub':'JPG · PNG · WEBP · Camera',
+    'upload-cta':'Choose how to add your photo:','upload-sub':'JPG · PNG · WEBP · Camera',
+    'btn.camera':'Take Photo','btn.gallery':'Upload from Gallery',
     's2-title':'✏️ Confirm Details','s2-sub':'AI pre-filled what it detected. Correct if needed.',
     's3-title':'Confirm & Submit','s3-disc':'AI screening signal only — not a confirmed diagnosis.',
     'step1-next-lbl':'Next →','mic-btn-lbl':'Speak','ai-disc':'Tap options below to change anything.',
@@ -954,7 +969,8 @@ const LABELS = {
     'lbl-severity':'ಎಷ್ಟು ಸಸ್ಯಗಳು ಬಾಧಿತ?','lbl-rain':'ಕಳೆದ 48 ಗಂಟೆ ಮಳೆ ಬಿದ್ದಿದೆಯೇ?',
     'lbl-area':'ಜಮೀನಿನ ಎಷ್ಟು ಭಾಗ ಬಾಧಿತ?','lbl-known':'ಈ ಬೆಳೆಗೆ ಸಾಮಾನ್ಯ ರೋಗಗಳು',
     's1-title':'📷 ಎಲೆ ಫೋಟೊ ಅಪ್ಲೋಡ್ ಮಾಡಿ','s1-sub':'ಸ್ಪಷ್ಟ ಫೋಟೊ ತೆಗೆಯಿರಿ. AI ರೋಗ ಪತ್ತೆ ಮಾಡುತ್ತದೆ.',
-    'upload-cta':'ಒತ್ತಿ ಅಪ್ಲೋಡ್ ಮಾಡಿ','upload-sub':'JPG · PNG · WEBP · ಕ್ಯಾಮೆರಾ',
+    'upload-cta':'ಫೋಟೊ ಹೇಗೆ ಸೇರಿಸಬೇಕು?','upload-sub':'JPG · PNG · WEBP · ಕ್ಯಾಮೆರಾ',
+    'btn.camera':'ಫೋಟೊ ತೆಗೆಯಿರಿ','btn.gallery':'ಗ್ಯಾಲರಿಯಿಂದ ಅಪ್ಲೋಡ್',
     's2-title':'✏️ ವಿವರ ಖಚಿತಪಡಿಸಿ','s2-sub':'AI ಪತ್ತೆ ಮಾಡಿದ ಮಾಹಿತಿ ತೋರಿಸಲಾಗಿದೆ.',
     's3-title':'ದೃಢಪಡಿಸಿ ಮತ್ತು ಸಲ್ಲಿಸಿ','s3-disc':'ಫಲಿತಾಂಶ AI ತಪಾಸಣಾ ಸಂಕೇತ, ರೋಗನಿರ್ಣಯ ಅಲ್ಲ.',
     'step1-next-lbl':'ಮುಂದೆ →','mic-btn-lbl':'ಮಾತನಾಡಿ','ai-disc':'ಬದಲಿಸಲು ಯಾವುದೇ ಆಯ್ಕೆ ಒತ್ತಿ.',
@@ -1002,7 +1018,8 @@ const LABELS = {
     'lbl-severity':'कितने पौधे प्रभावित?','lbl-rain':'पिछले 48 घंटे बारिश?',
     'lbl-area':'खेत का कितना भाग प्रभावित?','lbl-known':'इस फसल की सामान्य बीमारियाँ',
     's1-title':'📷 पत्ती की फ़ोटो अपलोड करें','s1-sub':'स्पष्ट फ़ोटो लें। AI रोग पहचानेगा।',
-    'upload-cta':'टैप करके अपलोड करें','upload-sub':'JPG · PNG · WEBP · कैमरा',
+    'upload-cta':'फ़ोटो कैसे जोड़ें?','upload-sub':'JPG · PNG · WEBP · कैमरा',
+    'btn.camera':'फ़ोटो लें','btn.gallery':'गैलरी से अपलोड',
     's2-title':'✏️ विवरण की पुष्टि करें','s2-sub':'AI ने जो पहचाना वह भरा है।',
     's3-title':'पुष्टि करें और जमा करें','s3-disc':'परिणाम AI संकेत है, पक्का निदान नहीं।',
     'step1-next-lbl':'अगला →','mic-btn-lbl':'बोलें','ai-disc':'बदलने के लिए कोई विकल्प टैप करें।',
