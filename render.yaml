@@ -15,7 +15,4 @@ services:
         value: "true"
       - key: GRADIO_URL
         value: ""
-    disk:
-      name: pestpulse-data
-      mountPath: /opt/render/project/src/backend/data
-      sizeGB: 1
+
