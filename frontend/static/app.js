@@ -224,19 +224,31 @@ async function speakText(text, lang) {
           const url   = URL.createObjectURL(blob);
           const audio = new Audio(url);
           window._activeAudio = audio;
-          audio.play();
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.warn('Audio play rejected (autoplay/gesture issue):', err);
+              window._activeAudio = null;
+              _webSpeakText(text, l, resolve);
+            });
+          }
           audio.onended = () => {
             URL.revokeObjectURL(url);
             window._activeAudio = null;
             resolve();
           };
-          audio.onerror = resolve;
+          audio.onerror = () => {
+            window._activeAudio = null;
+            _webSpeakText(text, l, resolve);
+          };
           return;
         }
       }
-    } catch (_) {}
+    } catch (err) {
+      console.warn('TTS fetch failed:', err);
+    }
 
-    // Fallback
+    // Fallback if fetch failed or returned non-ok
     _webSpeakText(text, l, resolve);
   });
 }
