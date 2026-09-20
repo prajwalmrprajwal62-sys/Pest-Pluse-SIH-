@@ -9,10 +9,12 @@ DB_PATH = DATABASE_URL.replace("sqlite:///", "")
 
 def get_db():
     os.makedirs(os.path.dirname(os.path.abspath(DB_PATH)), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=15)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=10000")   # wait up to 10s if locked
     conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA synchronous=NORMAL")
     return conn
 
 def init_db():
@@ -37,6 +39,7 @@ def init_db():
         severity        TEXT,
         affected_area   TEXT,
         trap_count      INTEGER,
+        nearby_count    INTEGER DEFAULT 0,
         recent_rain     TEXT,
         language        TEXT DEFAULT 'en',
         status          TEXT DEFAULT 'monitor',
@@ -47,7 +50,8 @@ def init_db():
         reasoning       TEXT,
         rule_version    TEXT,
         model_version   TEXT,
-        created_source  TEXT DEFAULT 'LIVE'
+        created_source  TEXT DEFAULT 'LIVE',
+        weather_json    TEXT DEFAULT '{}'
     );
 
     CREATE TABLE IF NOT EXISTS media_assets (

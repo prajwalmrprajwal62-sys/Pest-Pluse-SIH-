@@ -96,14 +96,21 @@ async def tts(body: TTSRequest):
 
 
 async def _gtts_tts(text: str, lang: str) -> str:
-    """Use gTTS (wraps Google Translate TTS). Returns MP3 as base64."""
+    """Use gTTS (wraps Google Translate TTS). Returns MP3 as base64.
+    Runs in a thread executor so it doesn't block the async event loop."""
+    import asyncio
     from gtts import gTTS
-    lc  = GTTS_LANG.get(lang, "kn")
-    tts = gTTS(text=text, lang=lc, slow=False)
-    buf = io.BytesIO()
-    tts.write_to_fp(buf)
-    buf.seek(0)
-    return base64.b64encode(buf.read()).decode()
+
+    def _sync_generate():
+        lc  = GTTS_LANG.get(lang, "kn")
+        tts = gTTS(text=text, lang=lc, slow=False)
+        buf = io.BytesIO()
+        tts.write_to_fp(buf)
+        buf.seek(0)
+        return base64.b64encode(buf.read()).decode()
+
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _sync_generate)
 
 
 async def _bhashini_tts(text: str, lang: str) -> str | None:

@@ -337,6 +337,16 @@ function _stopRecording(micBtnEl, micStatusEl) {
 let _voiceRecog = null;
 let _manualStop = false;
 
+const LANG_CODES = { en: 'en-IN', kn: 'kn-IN', hi: 'hi-IN' };
+let _voiceLangCode = LANG_CODES[currentLanguage] || 'en-IN';
+
+// Called by setLang() to update the active recognition language
+function _updateVoiceLang(lang) {
+  _voiceLangCode = LANG_CODES[lang] || 'en-IN';
+  // If recognition is running, stop and restart won't happen automatically
+  // — user must tap mic again after language switch
+}
+
 function _startWebSpeechASR(micBtnEl, micStatusEl) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
@@ -348,8 +358,8 @@ function _startWebSpeechASR(micBtnEl, micStatusEl) {
 
   function _createAndStart() {
     _voiceRecog = new SR();
-    _voiceRecog.lang            = 'en-IN';
-    _voiceRecog.continuous      = true;   // Keep going — no auto-cutoff
+    _voiceRecog.lang            = _voiceLangCode;   // ✅ uses current language
+    _voiceRecog.continuous      = true;
     _voiceRecog.interimResults  = true;
     _voiceRecog.maxAlternatives = 5;
 
@@ -361,7 +371,6 @@ function _startWebSpeechASR(micBtnEl, micStatusEl) {
         const chunk = e.results[i][0].transcript;
         if (e.results[i].isFinal) {
           finalTx += ' ' + chunk;
-          // Process each final segment immediately
           _processTranscript(finalTx.trim(), null);
         } else {
           interim = chunk;
@@ -374,7 +383,6 @@ function _startWebSpeechASR(micBtnEl, micStatusEl) {
     };
 
     _voiceRecog.onend = () => {
-      // Restart automatically unless user manually stopped
       if (!_manualStop && _recActive) {
         try { _voiceRecog.start(); } catch(_) {}
       } else {
@@ -385,7 +393,6 @@ function _startWebSpeechASR(micBtnEl, micStatusEl) {
 
     _voiceRecog.onerror = e => {
       if (e.error === 'no-speech') {
-        // No speech detected — restart silently
         if (!_manualStop && _recActive) {
           try { _voiceRecog.start(); } catch(_) {}
         }
@@ -397,7 +404,6 @@ function _startWebSpeechASR(micBtnEl, micStatusEl) {
         if (micStatusEl) { micStatusEl.textContent = t('mic_blocked'); micStatusEl.style.display = 'block'; }
         return;
       }
-      // Other errors — try to restart
       if (!_manualStop && _recActive) {
         setTimeout(() => { try { _voiceRecog.start(); } catch(_) {} }, 300);
       }
@@ -488,6 +494,11 @@ function _processTranscript(transcript, micStatusEl) {
       count++;
     }
   });
+
+  // ✅ Call the farmer.html voice hook to store transcript in textarea + form
+  if (typeof window._voiceOnFinal === 'function') {
+    window._voiceOnFinal(transcript);
+  }
 
   if (micStatusEl) {
     micStatusEl.style.display = 'block';

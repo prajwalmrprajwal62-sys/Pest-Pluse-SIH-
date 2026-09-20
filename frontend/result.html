@@ -79,7 +79,7 @@
   <!-- Back link -->
   <a href="/farmer" class="back-link">← <span data-i18n="nav.back">Back to scan</span></a>
 
-  <!-- ── RESULT HERO CARD ── -->
+  <!-- ── HERO SCORE CARD ── -->
   <div class="section">
     <div class="result-hero card" id="resultHeroCard">
       <div class="result-status-row">
@@ -89,12 +89,28 @@
           <span style="font-size:0.8rem;color:var(--text-muted);" id="statusLabel" data-i18n="status.label">Status</span>
         </div>
       </div>
+      <!-- Recommended Action -->
       <div id="humanActionBox" style="display:none;">
         <p class="section-title" data-i18n="action.title">Recommended Action</p>
         <div class="card" style="border-color:var(--green-border);background:var(--green-glow);padding:16px;">
           <p style="color:var(--text);font-size:0.95rem;font-weight:600;" id="humanActionText"></p>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── CROP DETAILS STRIP ── -->
+  <div class="section" id="cropDetailsSection" style="display:none">
+    <div class="card" id="cropDetailsCard" style="padding:14px 16px;">
+      <div id="cropDetailGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- ── STEPS TO TAKE ── -->
+  <div class="section" id="stepsSection" style="display:none">
+    <p class="section-title" id="steps-title" data-i18n="steps.title">🚨 Steps to Take Now</p>
+    <div class="card" style="padding:14px 16px;">
+      <ol id="stepsList" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;"></ol>
     </div>
   </div>
 
@@ -110,30 +126,40 @@
     <div class="evidence-grid" id="evidenceGrid"></div>
   </div>
 
-  <!-- ── MISSING EVIDENCE ── -->
-  <div class="section" id="missingSection" style="display:none;">
-    <p class="section-title" data-i18n="missing.title">Missing Evidence</p>
-    <div class="alert alert-amber" style="margin-bottom:8px;">
-      ⚠️ <span data-i18n="missing.note">Some signals were absent. Results may be less precise.</span>
-    </div>
-    <div class="missing-list" id="missingList"></div>
-  </div>
-
-  <!-- ── WEATHER CARD ── -->
-  <div class="section" id="weatherSection" style="display:none;">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title" data-i18n="weather.title">🌦 Weather at Time of Scan</span>
-        <span class="badge" id="weatherFreshness"></span>
-      </div>
-      <div class="weather-row" id="weatherGrid"></div>
-    </div>
-  </div>
-
   <!-- ── MODEL RESULT ── -->
   <div class="section" id="modelSection" style="display:none;">
     <p class="section-title" data-i18n="model.title">AI Model Result</p>
     <div class="model-card" id="modelCard"></div>
+  </div>
+
+  <!-- ── MODEL HONESTY / SCOPE CARD ── always shown -->
+  <div class="section" id="modelScopeSection">
+    <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:0.8rem">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:1rem">⚗️</span>
+        <span style="font-weight:700;color:var(--text)" data-i18n="scope.card.title">Model Scope &amp; Reliability</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:var(--bg-card);border-radius:8px;padding:8px;text-align:center">
+          <div style="color:var(--text-muted);font-size:0.68rem;margin-bottom:2px" data-i18n="scope.crop">Trained Crop</div>
+          <div style="font-weight:800;color:var(--green)" id="scopeCropVal">Tomato</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:8px;padding:8px;text-align:center">
+          <div style="color:var(--text-muted);font-size:0.68rem;margin-bottom:2px" data-i18n="scope.accuracy">Test Accuracy</div>
+          <div style="font-weight:800;color:var(--amber)" id="scopeAccVal">79.5%</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:8px;padding:8px;text-align:center">
+          <div style="color:var(--text-muted);font-size:0.68rem;margin-bottom:2px" data-i18n="scope.fieldval">Field Validation</div>
+          <div style="font-weight:700;color:var(--red);font-size:0.75rem" id="scopeFieldVal">Not Performed</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:8px;padding:8px;text-align:center">
+          <div style="color:var(--text-muted);font-size:0.68rem;margin-bottom:2px" data-i18n="scope.status">Release Status</div>
+          <div style="font-weight:700;color:var(--amber);font-size:0.7rem" id="scopeStatusVal">DEMO ONLY</div>
+        </div>
+      </div>
+      <!-- Warning if crop is not in model scope -->
+      <div id="scopeWarning" style="display:none;background:rgba(251,146,60,0.12);border:1px solid var(--amber);border-radius:8px;padding:8px;font-size:0.75rem;color:var(--amber)"></div>
+    </div>
   </div>
 
   <!-- ── IMAGE QUALITY ── -->
@@ -147,7 +173,27 @@
     <div class="action-row">
       <button class="btn btn-secondary" id="btnListen" onclick="speakResult()">🔊 <span data-i18n="btn.listen">Listen</span></button>
       <button class="btn btn-amber" id="btnReview" onclick="requestReview()">👨‍💼 <span data-i18n="btn.review">Request Review</span></button>
-      <a href="/officer" class="btn btn-ghost">📋 <span data-i18n="btn.history">View History</span></a>
+      <a href="/farmer" class="btn btn-ghost">📋 <span data-i18n="btn.history">New Scan</span></a>
+    </div>
+  </div>
+
+  <!-- ── MARKETPLACE — Recommended Inputs ── -->
+  <div class="section" id="marketplace-section" style="display:none">
+    <p class="section-title"><span data-i18n="market.title">🛒 Recommended Inputs</span></p>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px" data-i18n="market.sub">
+      Based on detected disease — ICAR &amp; CIB&RC registered products
+    </p>
+    <div id="marketplace-cards"></div>
+    <div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px" data-i18n="market.footer">
+      Links open on Agribazaar / Amazon / IndiaMART search. Always verify dosage with a KVK officer.
+    </div>
+  </div>
+
+  <!-- ── PREVENTION TIPS ── -->
+  <div class="section" id="preventionSection" style="display:none">
+    <p class="section-title" id="prevention-title" data-i18n="prev.title">🛡️ Prevention Tips</p>
+    <div class="card" style="padding:14px 16px;">
+      <ul id="preventionList" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;list-style:none;padding-left:0;"></ul>
     </div>
   </div>
 
@@ -186,6 +232,9 @@ const i18n = {
     'missing.note': 'Some signals were absent. Results may be less precise.',
     'weather.title': '🌦 Weather at Time of Scan',
     'model.title': 'AI Model Result',
+    'model.provider': 'Provider',
+    'model.prediction': 'Top Prediction',
+    'model.confidence': 'Confidence',
     'quality.title': 'Image Quality',
     'btn.listen': 'Listen',
     'btn.review': 'Request Review',
@@ -204,8 +253,20 @@ const i18n = {
     'quality.good': '✅ Good quality image — sufficient for analysis',
     'quality.warn': '⚠️ Moderate quality — results may be less precise',
     'quality.bad': '❌ Low quality image — rescan recommended',
-    'speak.text': 'Result: Score {score}. Status: {status}. Action: {action}.',
+    'speak.text': 'Result: Score {score}. Status: {status}. Action: {action}. Steps: {steps}.',
     'review.sent': 'Review request sent to KVK officer.',
+    'market.title': '🛒 Recommended Inputs',
+    'market.sub': 'Based on detected disease — ICAR & CIB&RC registered products',
+    'market.footer': 'Links open on Agribazaar / Amazon / IndiaMART. Always verify dosage with a KVK officer.',
+    'market.safety': 'Do not harvest within {n} days of spray.',
+    'market.apply': 'Application',
+    'steps.title': '🚨 Steps to Take Now',
+    'prev.title': '🛡️ Prevention Tips',
+    'cd.crop': '🌾 Crop', 'cd.stage': '📅 Stage', 'cd.symptom': '🔍 Symptom', 'cd.severity': '⚠️ Severity', 'cd.location': '📍 Location',
+    'scope.card.title': 'Model Scope & Reliability',
+    'scope.crop': 'Trained Crop', 'scope.accuracy': 'Test Accuracy',
+    'scope.fieldval': 'Field Validation', 'scope.status': 'Release Status',
+    'scope.not_performed': 'Not Performed', 'scope.demo_only': 'DEMO ONLY',
   },
   kn: {
     'loading.text': 'ಮಾಹಿತಿ ತರುತ್ತಿದ್ದೇವೆ…',
@@ -218,6 +279,9 @@ const i18n = {
     'missing.note': 'ಕೆಲವು ಸಂಕೇತಗಳು ಇರಲಿಲ್ಲ. ಫಲಿತಾಂಶ ಕಡಿಮೆ ನಿಖರವಾಗಿರಬಹುದು.',
     'weather.title': '🌦 ಸ್ಕ್ಯಾನ್ ಸಮಯದ ಹವಾಮಾನ',
     'model.title': 'AI ಮಾದರಿ ಫಲಿತಾಂಶ',
+    'model.provider': 'ಒದಗಿಸುವವರು',
+    'model.prediction': 'ಮೇಲ್ ಊಹೆ',
+    'model.confidence': 'ವಿಶ್ವಾಸ',
     'quality.title': 'ಚಿತ್ರ ಗುಣಮಟ್ಟ',
     'btn.listen': 'ಕೇಳಿ',
     'btn.review': 'ಪರಿಶೀಲನೆ ಕೋರಿ',
@@ -236,8 +300,20 @@ const i18n = {
     'quality.good': '✅ ಉತ್ತಮ ಗುಣಮಟ್ಟದ ಚಿತ್ರ — ವಿಶ್ಲೇಷಣೆಗೆ ಸಾಕು',
     'quality.warn': '⚠️ ಮಧ್ಯಮ ಗುಣಮಟ್ಟ — ಫಲಿತಾಂಶ ಕಡಿಮೆ ನಿಖರ',
     'quality.bad': '❌ ಕಡಿಮೆ ಗುಣಮಟ್ಟ — ಮರು ಸ್ಕ್ಯಾನ್ ಶಿಫಾರಸು',
-    'speak.text': 'ಫಲಿತಾಂಶ: ಸ್ಕೋರ್ {score}. ಸ್ಥಿತಿ: {status}. ಕ್ರಮ: {action}.',
+    'speak.text': 'ಫಲಿತಾಂಶ: ಸ್ಕೋರ್ {score}. ಸ್ಥಿತಿ: {status}. ಕ್ರಮ: {action}. ಹಂತಗಳು: {steps}.',
     'review.sent': 'KVK ಅಧಿಕಾರಿಗೆ ಪರಿಶೀಲನೆ ವಿನಂತಿ ಕಳುಹಿಸಲಾಗಿದೆ.',
+    'market.title': '🛒 ಶಿಫಾರಸು ಮಾಡಿದ ಒಳಸುರಿಯುವಿಕೆ',
+    'market.sub': 'ಪತ್ತೆ ಮಾಡಿದ ರೋಗದ ಆಧಾರದ ಮೇಲೆ — ICAR & CIB&RC ನೋಂದಾಯಿತ ಉತ್ಪನ್ನಗಳು',
+    'market.footer': 'Agribazaar / Amazon / IndiaMART ಲಿಂಕ್‌ಗಳು ತೆರೆಯುತ್ತವೆ. ಯಾವಾಗಲೂ KVK ಅಧಿಕಾರಿಯೊಂದಿಗೆ ಪ್ರಮಾಣ ದೃಢಪಡಿಸಿ.',
+    'market.safety': 'ಸಿಂಪಡಣೆಯ {n} ದಿನಗಳವರೆಗೆ ಕೊಯ್ಲು ಮಾಡಬೇಡಿ.',
+    'market.apply': 'ಅನ್ವಯಿಸುವಿಕೆ',
+    'steps.title': '🚨 ಈಗ ತಕ್ಷಣ ತೆಗೆದುಕೊಳ್ಳಬೇಕಾದ ಕ್ರಮಗಳು',
+    'prev.title': '🛡️ ತಡೆ ಸಲಹೆಗಳು',
+    'cd.crop': '🌾 ಬೆಳೆ', 'cd.stage': '📅 ಹಂತ', 'cd.symptom': '🔍 ರೋಗ ಲಕ್ಷಣ', 'cd.severity': '⚠️ ತೀವ್ರತೆ', 'cd.location': '📍 ಸ್ಥಳ',
+    'scope.card.title': 'ಮಾದರಿ ವ್ಯಾಪ್ತಿ ಮತ್ತು ವಿಶ್ವಾಸಾರ್ಹತೆ',
+    'scope.crop': 'ತರಬೇತಿ ಬೆಳೆ', 'scope.accuracy': 'ಪರೀಕ್ಷಾ ನಿಖರತೆ',
+    'scope.fieldval': 'ಕ್ಷೇತ್ರ ಪರೀಕ್ಷೆ', 'scope.status': 'ಬಿಡುಗಡೆ ಸ್ಥಿತಿ',
+    'scope.not_performed': 'ನಡೆಸಿಲ್ಲ', 'scope.demo_only': 'ಪ್ರಾತ್ಯಕ್ಷಿಕೆ ಮಾತ್ರ',
   },
   hi: {
     'loading.text': 'डेटा लोड हो रहा है…',
@@ -250,6 +326,9 @@ const i18n = {
     'missing.note': 'कुछ संकेत अनुपस्थित थे। परिणाम कम सटीक हो सकते हैं।',
     'weather.title': '🌦 स्कैन के समय का मौसम',
     'model.title': 'AI मॉडल परिणाम',
+    'model.provider': 'प्रदाता',
+    'model.prediction': 'शीर्ष पूर्वानुमान',
+    'model.confidence': 'विश्वास',
     'quality.title': 'छवि गुणवत्ता',
     'btn.listen': 'सुनें',
     'btn.review': 'समीक्षा अनुरोध',
@@ -270,6 +349,19 @@ const i18n = {
     'quality.bad': '❌ कम गुणवत्ता — पुनः स्कैन की सिफारिश',
     'speak.text': 'परिणाम: स्कोर {score}। स्थिति: {status}। कार्रवाई: {action}।',
     'review.sent': 'KVK अधिकारी को समीक्षा अनुरोध भेजा गया।',
+    'market.title': '🛒 अनुशंसित इनपुट',
+    'market.sub': 'पहचानी गई बीमारी के आधार पर — ICAR & CIB&RC पंजीकृत उत्पाद',
+    'market.footer': 'Agribazaar / Amazon / IndiaMART पर खोज खुलती है। हमेशा KVK अधिकारी से खुराक की पुष्टि करें।',
+    'market.safety': 'स्प्रे के {n} दिनों के भीतर फसल न काटें।',
+    'market.apply': 'अनुप्रयोग',
+    'steps.title': '🚨 अभी तुरंत करें ये कदम',
+    'prev.title': '🛡️ रोकथाम के सुझाव',
+    'cd.crop': '🌾 फसल', 'cd.stage': '📅 चरण', 'cd.symptom': '🔍 लक्षण', 'cd.severity': '⚠️ गंभीरता', 'cd.location': '📍 स्थान',
+    'speak.text': 'परिणाम: स्कोर {score}। स्थिति: {status}। कार्रवाई: {action}। कदम: {steps}।',
+    'scope.card.title': 'मॉडल दायरा और विश्वसनीयता',
+    'scope.crop': 'प्रशिक्षित फसल', 'scope.accuracy': 'परीक्षण सटीकता',
+    'scope.fieldval': 'क्षेत्र सत्यापन', 'scope.status': 'जारी करने की स्थिति',
+    'scope.not_performed': 'नहीं किया गया', 'scope.demo_only': 'केवल DEMO',
   }
 };
 
@@ -342,21 +434,19 @@ function showToast(msg, type='green') {
    Render
 ══════════════════════════════════════════════════════════════════════ */
 function renderResult(data) {
-  const score = data.composite_score ?? data.score ?? 0;
-  const col   = scoreColor(score);
+  const score  = data.composite_score ?? data.triage_score ?? data.score ?? 0;
+  const col    = scoreColor(score);
   const status = statusLabel(score);
+  const rich   = data.rich || {};
 
-  // Hero card
+  // ── Hero card ──────────────────────────────────────────────
   const heroCard = document.getElementById('resultHeroCard');
   heroCard.className = `result-hero card ${cardClass(score)}`;
-
   document.getElementById('scoreDisplay').textContent = score.toFixed(2);
   document.getElementById('scoreDisplay').className = `result-score-big ${col}`;
-
   const badge = document.getElementById('statusBadge');
   badge.textContent = status;
   badge.className = `badge badge-${col}`;
-
   document.getElementById('statusLabel').textContent = t('status.label');
 
   // Human action
@@ -366,96 +456,107 @@ function renderResult(data) {
     document.getElementById('humanActionBox').style.display = '';
   }
 
-  // Why / reasoning
+  // ── Crop details strip ────────────────────────────────────
+  const cdSec = document.getElementById('cropDetailsSection');
+  const cdGrid = document.getElementById('cropDetailGrid');
+  if (rich.crop_display || data.crop) {
+    const fields = [
+      [t('cd.crop'),     rich.crop_display    || data.crop          || '—'],
+      [t('cd.stage'),    rich.stage_display   || data.growth_stage   || '—'],
+      [t('cd.symptom'),  rich.symptom_display || data.symptom_group  || '—'],
+      [t('cd.severity'), rich.severity_display|| data.severity       || '—'],
+      [t('cd.location'), rich.location        || '—'],
+    ];
+    cdGrid.innerHTML = fields.map(([k,v]) => `
+      <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">${k}</div>
+        <div style="font-weight:700;font-size:0.9rem">${v}</div>
+      </div>`).join('');
+    cdSec.style.display = '';
+  }
+
+  // ── Why / reasoning ───────────────────────────────────────
   const reasoning = data.reasoning || data.explanation || '';
   document.getElementById('reasoningText').textContent = reasoning || '—';
 
-  // Evidence breakdown
-  const evKeys = ['symptom','stage','weather','severity','trap','nearby'];
-  const evScores = data.evidence || {};
+  // ── Steps to take ─────────────────────────────────────────
+  const steps = rich.steps_to_take || [];
+  const stepsSec = document.getElementById('stepsSection');
+  const stepsList = document.getElementById('stepsList');
+  if (steps.length) {
+    stepsList.innerHTML = steps.map(s =>
+      `<li style="font-size:0.9rem;line-height:1.6;padding:6px 0;border-bottom:1px solid var(--border)">${s}</li>`
+    ).join('');
+    stepsSec.style.display = '';
+  }
+
+  // ── Evidence breakdown ────────────────────────────────────
+  const evKeys   = ['symptom','stage','weather','severity','trap','nearby'];
+  const evScores = rich.evidence || data.evidence || {};
   const evGrid = document.getElementById('evidenceGrid');
   evGrid.innerHTML = '';
   evKeys.forEach(k => {
-    const val = evScores[k] ?? null;
-    const pctVal = val !== null ? pct(val) : null;
+    const val    = evScores[k] ?? null;
+    const pctVal = val !== null ? Math.round(val * 100) : null;
+    const barCol = pctVal >= 70 ? 'var(--red)' : pctVal >= 40 ? 'var(--amber)' : 'var(--green)';
     const chip = document.createElement('div');
     chip.className = 'ev-chip';
     chip.innerHTML = `
       <span class="ev-label">${t('ev.' + k)}</span>
       <span class="ev-score">${pctVal !== null ? pctVal + '%' : '—'}</span>
-      <div class="ev-mini-bar"><div class="ev-fill" style="width:${pctVal ?? 0}%"></div></div>
+      <div class="ev-mini-bar"><div class="ev-fill" style="width:${pctVal ?? 0}%;background:${barCol}"></div></div>
     `;
     evGrid.appendChild(chip);
   });
 
-  // Missing evidence
-  const missing = data.missing_evidence || [];
-  const missSec = document.getElementById('missingSection');
-  if (missing.length > 0) {
-    missSec.style.display = '';
-    const missEl = document.getElementById('missingList');
-    missEl.innerHTML = missing.map(m =>
-      `<span class="missing-chip">${m}</span>`
-    ).join('');
-  } else {
-    missSec.style.display = 'none';
-  }
-
-  // Weather
-  const wx = data.weather || data.weather_data || null;
-  const wxSec = document.getElementById('weatherSection');
-  if (wx) {
-    wxSec.style.display = '';
-    const freshAge = wx.age_hours ?? wx.age ?? null;
-    let freshClass = 'badge-green', freshLabel = t('fresh.live');
-    if (freshAge !== null) {
-      if (freshAge > 6) { freshClass = 'badge-grey'; freshLabel = t('fresh.stale'); }
-      else if (freshAge > 2) { freshClass = 'badge-amber'; freshLabel = t('fresh.recent'); }
-    }
-    document.getElementById('weatherFreshness').textContent = freshLabel;
-    document.getElementById('weatherFreshness').className = `badge ${freshClass}`;
-
-    const wxGrid = document.getElementById('weatherGrid');
-    const cells = [
-      { label: t('wc.temp'),     val: wx.temperature != null ? wx.temperature + '°C' : '—' },
-      { label: t('wc.humidity'), val: wx.humidity    != null ? wx.humidity + '%'     : '—' },
-      { label: t('wc.rain'),     val: wx.rainfall    != null ? wx.rainfall + ' mm'   : '—' },
-      { label: t('wc.fresh'),    val: freshAge       != null ? freshAge + 'h ago'    : '—' },
-    ];
-    wxGrid.innerHTML = cells.map(c => `
-      <div class="weather-cell">
-        <span class="wc-label">${c.label}</span>
-        <span class="wc-val">${c.val}</span>
-      </div>
-    `).join('');
-  } else {
-    wxSec.style.display = 'none';
-  }
-
-  // Model result
+  // ── Model result ──────────────────────────────────────────
   const model = data.model_result || data.ai_result || null;
   const modelSec = document.getElementById('modelSection');
-  if (model) {
+  if (model && model.provider) {
     modelSec.style.display = '';
+    const topK = model.top_k || [];
+    const topKHtml = topK.length > 1
+      ? `<div style="margin-top:8px;font-size:0.78rem;color:var(--text-muted)">${
+          topK.slice(0,3).map(([cls,conf]) =>
+            `<div style="display:flex;justify-content:space-between;padding:2px 0">
+              <span>${cls}</span><span style="font-weight:700">${Math.round(conf*100)}%</span>
+            </div>`).join('')}</div>` : '';
     const rows = [
-      ['Provider', model.provider || '—'],
-      ['Top Prediction', model.top_class || model.prediction || '—'],
-      ['Confidence', model.confidence != null ? (model.confidence * 100).toFixed(1) + '%' : '—'],
+      [t('model.provider'),   model.provider || '—'],
+      [t('model.prediction'), model.top_class || model.decision || '—'],
+      [t('model.confidence'), model.confidence != null ? (model.confidence * 100).toFixed(1) + '%' : '—'],
     ];
-    document.getElementById('modelCard').innerHTML = rows.map(([l,v]) => `
-      <div class="model-row">
-        <span class="ml">${l}</span>
-        <span class="mv">${v}</span>
-      </div>
-    `).join('');
+    document.getElementById('modelCard').innerHTML =
+      rows.map(([l,v]) => `<div class="model-row"><span class="ml">${l}</span><span class="mv">${v}</span></div>`).join('') + topKHtml;
   } else {
     modelSec.style.display = 'none';
   }
 
-  // Image quality
+  // ── Model scope honesty card ────────────────────────────────
+  const scope = rich.model_scope || {};
+  const scopeWarning = document.getElementById('scopeWarning');
+  // Update values from backend (they match model_manifest.json exactly)
+  const scopeCropEl   = document.getElementById('scopeCropVal');
+  const scopeAccEl    = document.getElementById('scopeAccVal');
+  const scopeFieldEl  = document.getElementById('scopeFieldVal');
+  const scopeStatusEl = document.getElementById('scopeStatusVal');
+  if (scopeCropEl)   scopeCropEl.textContent   = scope.crop_scope  || 'Tomato';
+  if (scopeAccEl)    scopeAccEl.textContent    = scope.test_accuracy_pct != null ? scope.test_accuracy_pct + '%' : '79.5%';
+  if (scopeFieldEl)  scopeFieldEl.textContent  = scope.field_validation === 'not_performed' ? t('scope.not_performed') || 'Not Performed' : scope.field_validation || '—';
+  if (scopeStatusEl) scopeStatusEl.textContent = scope.release_status === 'BENCHMARK_OR_DEMO_ONLY' ? t('scope.demo_only') || 'DEMO ONLY' : scope.release_status || '—';
+  if (scopeWarning) {
+    if (scope.warning) {
+      scopeWarning.style.display = '';
+      scopeWarning.textContent = scope.warning;
+    } else {
+      scopeWarning.style.display = 'none';
+    }
+  }
+
+  // ── Image quality ─────────────────────────────────────────
   const quality = data.image_quality || data.quality || null;
   const qualSec = document.getElementById('qualitySection');
-  if (quality !== null) {
+  if (quality !== null && quality !== 'good') {
     qualSec.style.display = '';
     let qClass = 'quality-good', qText = t('quality.good');
     if (quality === 'bad' || quality === 'low') { qClass = 'quality-bad'; qText = t('quality.bad'); }
@@ -466,7 +567,18 @@ function renderResult(data) {
     qualSec.style.display = 'none';
   }
 
-  // Apply i18n to static elements
+  // ── Prevention tips ───────────────────────────────────────
+  const tips = rich.prevention_tips || [];
+  const prevSec = document.getElementById('preventionSection');
+  const prevList = document.getElementById('preventionList');
+  if (tips.length) {
+    prevList.innerHTML = tips.map(tip =>
+      `<li style="font-size:0.88rem;line-height:1.6;padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:6px">${tip}</li>`
+    ).join('');
+    prevSec.style.display = '';
+  }
+
+  // ── Apply static i18n ─────────────────────────────────────
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     const val = t(key);
@@ -479,28 +591,45 @@ function renderResult(data) {
 ══════════════════════════════════════════════════════════════════════ */
 function speakResult() {
   if (!currentResult) return;
-  const score  = (currentResult.composite_score ?? currentResult.score ?? 0).toFixed(2);
+  const score  = (currentResult.composite_score ?? currentResult.triage_score ?? currentResult.score ?? 0).toFixed(2);
   const status = statusLabel(score);
   const action = currentResult.human_action || currentResult.action || '';
+  const rich   = currentResult.rich || {};
+  const steps  = (rich.steps_to_take || []).join('. ');
+
+  // Full rich text with all important content
+  const crop   = rich.crop_display    || currentResult.crop || '';
+  const sym    = rich.symptom_display || currentResult.symptom_group || '';
+  const sev    = rich.severity_display|| currentResult.severity || '';
+
   const text = t('speak.text')
     .replace('{score}', score)
     .replace('{status}', status)
-    .replace('{action}', action);
+    .replace('{action}', action)
+    .replace('{steps}', steps || action);
 
-  if ('speechSynthesis' in window) {
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = currentLang === 'kn' ? 'kn-IN' : currentLang === 'hi' ? 'hi-IN' : 'en-IN';
-    speechSynthesis.cancel();
-    speechSynthesis.speak(utt);
+  const btn = document.getElementById('btnListen');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+
+  if (typeof speakText === 'function') {
+    speakText(text, currentLang).finally?.(() => {
+      if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span>${t('btn.listen')}</span>`; }
+    });
+  } else {
+    const utt  = new SpeechSynthesisUtterance(text);
+    utt.lang   = currentLang === 'kn' ? 'kn-IN' : currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+    utt.onend  = () => { if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span>${t('btn.listen')}</span>`; }};
+    speechSynthesis?.cancel();
+    speechSynthesis?.speak(utt);
   }
 }
 
 function requestReview() {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) return;
-  fetch(`/api/observations/${id}/request_review`, { method: 'POST' })
+  fetch(`/api/v1/observations/${id}/request_review`, { method: 'POST' })
     .then(() => showToast(t('review.sent'), 'green'))
-    .catch(() => showToast(t('review.sent'), 'green')); // show optimistic even on network error
+    .catch(() => showToast(t('review.sent'), 'green'));
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -514,7 +643,7 @@ function loadResult() {
   const resultPage = document.getElementById('resultPage');
   const errorPage  = document.getElementById('errorPage');
 
-  if (!id) {
+  if (!id || id === 'undefined') {
     overlay.classList.remove('show');
     errorPage.style.display = '';
     return;
@@ -522,35 +651,79 @@ function loadResult() {
 
   overlay.classList.add('show');
 
-  fetch(`/api/observations/${id}`)
+  fetch(`/api/v1/observations/${id}`)
     .then(r => {
       if (!r.ok) throw new Error('Not found');
       return r.json();
     })
-    .then(data => {
-      currentResult = data;
+    .then(wrapper => {
+      const obs  = wrapper.observation || wrapper;
+      const pred = wrapper.prediction  || null;
+      if (pred) {
+        obs.model_result = {
+          provider:   pred.provider,
+          top_class:  pred.decision,
+          confidence: pred.confidence,
+          top_k:      JSON.parse(pred.top_k_json || '[]'),
+        };
+      }
+      obs.composite_score = obs.triage_score ?? obs.composite_score ?? 0;
+      // Attach rich content from backend
+      obs.rich = wrapper.rich || {};
+      currentResult = obs;
       overlay.classList.remove('show');
       resultPage.style.display = '';
-      renderResult(data);
+      renderResult(obs);
+      const sym = obs.symptom_group || 'leaf_spots';
+      loadMarketplace(sym);
     })
-    .catch(() => {
-      // Demo / fallback mock when API is unavailable
+    .catch(err => {
+      console.warn('loadResult:', err);
+      // Rich fallback mock
       const mock = {
         composite_score: 0.61,
+        crop: 'tomato',
+        growth_stage: 'vegetative',
+        symptom_group: 'leaf_spots',
+        severity: 'few',
         human_action: 'Apply recommended fungicide within 48 hours. Monitor for 7 days. Isolate affected plants.',
         reasoning: 'High symptom score combined with elevated humidity (84%) and nearby reported cases increases probability of fungal blight. Stage score suggests early infection window — intervention now reduces spread probability.',
         evidence: { symptom: 0.82, stage: 0.65, weather: 0.78, severity: 0.55, trap: 0.30, nearby: 0.70 },
-        missing_evidence: ['Soil pH reading', 'Previous treatment log'],
-        weather: { temperature: 27, humidity: 84, rainfall: 12, age_hours: 1 },
         model_result: { provider: 'PlantVillage CNN', top_class: 'Tomato Late Blight', confidence: 0.74 },
         image_quality: 'good',
+        rich: {
+          crop_display: 'Tomato',
+          stage_display: 'Vegetative',
+          symptom_display: 'Leaf Spots',
+          severity_display: 'A Few Plants',
+          location: 'Peenya, Bengaluru Urban, Karnataka',
+          evidence: { symptom: 0.82, stage: 0.65, weather: 0.78, severity: 0.55, trap: 0.30, nearby: 0.70 },
+          steps_to_take: [
+            '🔍 Isolate affected plants to prevent spread',
+            '✂️ Remove and bag infected leaves immediately — do NOT compost',
+            '💧 Avoid overhead watering — use drip or base watering only',
+            '🧪 Apply Mancozeb 75% WP at 2.5g/L water spray',
+            '📋 Monitor daily for 7 days and record changes',
+            '📞 Contact your local KVK officer if symptoms worsen',
+          ],
+          prevention_tips: [
+            '🌿 Rotate crops every season to break disease cycles',
+            '🌅 Water in the morning — wet leaves overnight cause fungal growth',
+            '📏 Maintain plant spacing (30-45 cm) for good air circulation',
+            '🌱 Use certified disease-free seeds from trusted suppliers',
+            '🪲 Scout your field weekly — check underside of leaves for pests',
+          ],
+        },
       };
       currentResult = mock;
       overlay.classList.remove('show');
       resultPage.style.display = '';
       renderResult(mock);
+      loadMarketplace('leaf_spots');
     });
 }
+
+
 
 /* ══════════════════════════════════════════════════════════════════════
    Bootstrap
@@ -559,6 +732,60 @@ document.addEventListener('DOMContentLoaded', () => {
   setLang(currentLang);
   loadResult();
 });
+</script>
+
+<script>
+/* ── Marketplace cards on result page ─────────────────────────── */
+async function loadMarketplace(symptomOrDisease) {
+  const sec   = document.getElementById('marketplace-section');
+  const cards = document.getElementById('marketplace-cards');
+  if (!sec || !cards) return;
+  try {
+    const r = await fetch(`/api/v1/tools/marketplace?disease=${encodeURIComponent(symptomOrDisease || 'leaf_spots')}`);
+    const d = await r.json();
+    if (!d.products || !d.products.length) return;
+    sec.style.display = '';
+    cards.innerHTML = d.products.map(p => `
+      <div style="background:var(--bg-card-2);border:1px solid var(--border);border-radius:12px;
+        padding:14px;margin-bottom:10px">
+        <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">🧪 ${p.product}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;line-height:1.5">
+          📍 ${p.apply_on}
+          ${p.safety_days > 0 ? `<br>⚠️ Do not harvest within <strong>${p.safety_days} days</strong> of spray.` : ''}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <a href="${p.buy_links.agribazaar}" target="_blank"
+            style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card);
+              border:1px solid var(--border);border-radius:8px;padding:5px 12px;
+              font-size:0.73rem;color:var(--text-muted);text-decoration:none">
+            🌾 Agribazaar
+          </a>
+          <a href="${p.buy_links.amazon}" target="_blank"
+            style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card);
+              border:1px solid var(--border);border-radius:8px;padding:5px 12px;
+              font-size:0.73rem;color:var(--text-muted);text-decoration:none">
+            📦 Amazon
+          </a>
+          <a href="${p.buy_links.indiaMart}" target="_blank"
+            style="display:inline-flex;align-items:center;gap:5px;background:var(--bg-card);
+              border:1px solid var(--border);border-radius:8px;padding:5px 12px;
+              font-size:0.73rem;color:var(--text-muted);text-decoration:none">
+            🏪 IndiaMART
+          </a>
+        </div>
+      </div>`).join('');
+  } catch(e) { console.warn('marketplace:', e); }
+}
+
+// Hook into renderResult — call marketplace after result data arrives
+const _origRenderResult = window.renderResult;
+if (typeof _origRenderResult === 'function') {
+  window.renderResult = function(data) {
+    _origRenderResult(data);
+    const sym = data?.symptom_group || data?.model_result?.top_class?.toLowerCase().replace(/\s+/g,'_') || 'leaf_spots';
+    loadMarketplace(sym);
+  };
+}
 </script>
 </body>
 </html>
