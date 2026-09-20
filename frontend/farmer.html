@@ -312,7 +312,7 @@
     <!-- Camera input: opens camera directly on mobile -->
     <input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none" onchange="onFileSelected(event)"/>
     <!-- Gallery input: opens file picker / photo library on mobile -->
-    <input type="file" id="file-input-gallery" accept="image/*" style="display:none" onchange="onFileSelected(event)"/>
+    <input type="file" id="file-input-gallery" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" style="display:none" onchange="onFileSelected(event)"/>
     <!-- Legacy single input for any code that still references it -->
     <input type="file" id="file-input" accept="image/*" style="display:none" onchange="onFileSelected(event)"/>
 

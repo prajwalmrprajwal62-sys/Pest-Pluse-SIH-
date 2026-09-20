@@ -102,7 +102,7 @@
   <!-- ── ACTION BUTTONS ── -->
   <div class="section">
     <div class="action-row">
-      <button class="btn btn-secondary" id="btnListen" onclick="speakResult()">🔊 <span data-i18n="btn.listen">Listen</span></button>
+      <button class="btn btn-secondary" id="btnListen" onclick="if(!window._isSpeaking){this.disabled=true;}speakResult()">🔊 <span data-i18n="btn.listen">Listen</span></button>
       <button class="btn btn-amber" id="btnReview" onclick="requestReview()">👨‍💼 <span data-i18n="btn.review">Request Review</span></button>
       <a href="/farmer" class="btn btn-ghost">📋 <span data-i18n="btn.history">New Scan</span></a>
     </div>
@@ -658,6 +658,10 @@ async function speakResult() {
     return;
   }
 
+  // Lock immediately — prevent any double-click from firing a second stream
+  window._isSpeaking = true;
+  if (btn) { btn.disabled = true; btn.innerHTML = `⏳ <span>Loading…</span>`; }
+
   const score  = (currentResult.composite_score ?? currentResult.triage_score ?? currentResult.score ?? 0).toFixed(2);
   const status = statusLabel(score);
   const action = currentResult.human_action || currentResult.action || '';
@@ -671,9 +675,9 @@ async function speakResult() {
     .replace('{action}', action)
     .replace('{steps}', steps || action);
 
-  if (btn) btn.innerHTML = `🛑 <span>${t('btn.stop_listen') || 'Stop'}</span>`;
+  // Switch button to Stop once audio is loading (user can tap to cancel)
+  if (btn) { btn.disabled = false; btn.innerHTML = `🛑 <span>${t('btn.stop_listen') || 'Stop'}</span>`; }
 
-  window._isSpeaking = true;
   await _ttsPlay(text, currentLang);
   window._isSpeaking = false;
 
