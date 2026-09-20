@@ -215,7 +215,7 @@
 </div>
 
 <!-- ══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
-<script src="/static/app.js" defer></script>
+<script src="/static/app.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════════════
    i18n
@@ -595,19 +595,66 @@ function renderResult(data) {
 /* ══════════════════════════════════════════════════════════════════════
    Actions
 ══════════════════════════════════════════════════════════════════════ */
+
+/* Self-contained TTS — no dependency on app.js */
+async function _ttsPlay(text, lang) {
+  // 1. Try backend gTTS (works for kn, hi, en — proper voice)
+  try {
+    const res = await fetch('/api/v1/voice/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, lang }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.audio_b64) {
+        const bytes = atob(data.audio_b64);
+        const arr = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+        const mime = (data.format === 'wav') ? 'audio/wav' : 'audio/mpeg';
+        const blob = new Blob([arr], { type: mime });
+        const url  = URL.createObjectURL(blob);
+        return new Promise((resolve) => {
+          const audio = new Audio(url);
+          window._resultAudio = audio;
+          const done = () => { URL.revokeObjectURL(url); window._resultAudio = null; resolve(); };
+          audio.onended  = done;
+          audio.onerror  = done;
+          const p = audio.play();
+          if (p && p.catch) p.catch(() => { done(); _ttsBrowserFallback(text, lang, resolve); });
+        });
+      }
+    }
+  } catch (e) { console.warn('gTTS fetch failed:', e); }
+
+  // 2. Browser Web Speech fallback
+  return _ttsBrowserFallback(text, lang, null);
+}
+
+function _ttsBrowserFallback(text, lang, resolve) {
+  return new Promise((res) => {
+    const cb = resolve || res;
+    if (!window.speechSynthesis) { cb(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const codes = { en: 'en-IN', kn: 'kn-IN', hi: 'hi-IN' };
+    u.lang = codes[lang] || 'en-IN';
+    u.rate = 0.9;
+    u.onend = cb; u.onerror = cb;
+    speechSynthesis.speak(u);
+  });
+}
+
 async function speakResult() {
   if (!currentResult) return;
   const btn = document.getElementById('btnListen');
 
-  // If already speaking, stop and reset button
+  // If already speaking, stop
   if (window._isSpeaking) {
-    if (window._activeAudio) {
-      window._activeAudio.pause();
-      window._activeAudio = null;
-    }
+    if (window._resultAudio) { window._resultAudio.pause(); window._resultAudio = null; }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     window._isSpeaking = false;
-    if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span data-i18n="btn.listen">${t('btn.listen')}</span>`; }
+    if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span>${t('btn.listen') || 'Listen'}</span>`; }
     return;
   }
 
@@ -617,19 +664,20 @@ async function speakResult() {
   const rich   = currentResult.rich || {};
   const steps  = (rich.steps_to_take || []).join('. ');
 
-  const text = t('speak.text')
+  const tmpl = t('speak.text') || 'Status: {status}. Score: {score}. Action: {action}. {steps}';
+  const text = tmpl
     .replace('{score}', score)
     .replace('{status}', status)
     .replace('{action}', action)
     .replace('{steps}', steps || action);
 
-  if (btn) { btn.innerHTML = `🛑 <span data-i18n="btn.stop_listen">${t('btn.stop_listen') || 'Stop'}</span>`; }
-  
+  if (btn) btn.innerHTML = `🛑 <span>${t('btn.stop_listen') || 'Stop'}</span>`;
+
   window._isSpeaking = true;
-  await speakText(text, currentLang);
+  await _ttsPlay(text, currentLang);
   window._isSpeaking = false;
 
-  if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span data-i18n="btn.listen">${t('btn.listen')}</span>`; }
+  if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span>${t('btn.listen') || 'Listen'}</span>`; }
 }
 
 function requestReview() {
