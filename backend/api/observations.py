@@ -134,7 +134,17 @@ async def create_observation(
         # ── AI Inference ──────────────────────────────────────────────────────
         model_result = {"provider": "NO_IMAGE", "confidence": None, "decision": None,
                         "review_required": False, "top_k": []}
-        if image_bytes and quality_result["passed"]:
+                        
+        if crop != "tomato":
+            # For upcoming crops, bypass model completely and force review
+            model_result = {
+                "provider": "BYPASSED_UNSUPPORTED_CROP", 
+                "confidence": 0.0, 
+                "decision": "Unknown",
+                "review_required": True, 
+                "top_k": []
+            }
+        elif image_bytes and quality_result["passed"]:
             model_result = await run_inference(image_bytes)
 
         # ── Weather ───────────────────────────────────────────────────────────
@@ -159,7 +169,17 @@ async def create_observation(
         decision     = fusion["decision"]
         human_action = fusion["human_action"]
         reasoning    = fusion["reasoning"]
-        review_req   = 1 if fusion["review_required"] else 0
+        review_req   = 1 if (fusion["review_required"] or model_result.get("review_required")) else 0
+        
+        if crop != "tomato":
+            status = "expert"
+            review_req = 1
+            triage_score = 1.0
+            
+            # Use English fallback base strings - these will be translated by the UI's 'speak.text' 
+            # if we wanted them completely translated, but we can just provide clear English here.
+            human_action = ACTIONS["refer_to_expert"].get(language, ACTIONS["refer_to_expert"]["en"])
+            reasoning = "Automatic AI screening is currently optimized for Tomato. Your observation has been flagged for manual review by a local agricultural officer."
 
         # ── Persist observation ───────────────────────────────────────────────
         db.execute(

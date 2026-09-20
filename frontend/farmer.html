@@ -1555,7 +1555,10 @@ window.onFileSelected = async function(e) {
   try {
     const fd = new FormData();
     fd.append('image', selectedFile, selectedFile.name);
-    const res  = await fetch('/api/v1/quick-infer', { method:'POST', body:fd });
+    const [res] = await Promise.all([
+      fetch('/api/v1/quick-infer', { method:'POST', body:fd }),
+      new Promise(r => setTimeout(r, 600)) // UX delay
+    ]);
     const data = await res.json();
     const pred = data.prediction || {};
     const conf = pred.confidence || 0;

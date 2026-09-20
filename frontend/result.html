@@ -99,6 +99,15 @@
     </div>
   </div>
 
+  <!-- ── ACTION BUTTONS ── -->
+  <div class="section">
+    <div class="action-row">
+      <button class="btn btn-secondary" id="btnListen" onclick="speakResult()">🔊 <span data-i18n="btn.listen">Listen</span></button>
+      <button class="btn btn-amber" id="btnReview" onclick="requestReview()">👨‍💼 <span data-i18n="btn.review">Request Review</span></button>
+      <a href="/farmer" class="btn btn-ghost">📋 <span data-i18n="btn.history">New Scan</span></a>
+    </div>
+  </div>
+
   <!-- ── CROP DETAILS STRIP ── -->
   <div class="section" id="cropDetailsSection" style="display:none">
     <div class="card" id="cropDetailsCard" style="padding:14px 16px;">
@@ -168,15 +177,6 @@
     <div class="quality-card" id="qualityCard"></div>
   </div>
 
-  <!-- ── ACTION BUTTONS ── -->
-  <div class="section">
-    <div class="action-row">
-      <button class="btn btn-secondary" id="btnListen" onclick="speakResult()">🔊 <span data-i18n="btn.listen">Listen</span></button>
-      <button class="btn btn-amber" id="btnReview" onclick="requestReview()">👨‍💼 <span data-i18n="btn.review">Request Review</span></button>
-      <a href="/farmer" class="btn btn-ghost">📋 <span data-i18n="btn.history">New Scan</span></a>
-    </div>
-  </div>
-
   <!-- ── MARKETPLACE — Recommended Inputs ── -->
   <div class="section" id="marketplace-section" style="display:none">
     <p class="section-title"><span data-i18n="market.title">🛒 Recommended Inputs</span></p>
@@ -237,6 +237,7 @@ const i18n = {
     'model.confidence': 'Confidence',
     'quality.title': 'Image Quality',
     'btn.listen': 'Listen',
+    'btn.stop_listen': 'Stop',
     'btn.review': 'Request Review',
     'btn.history': 'View History',
     'caution.text': 'This is a screening signal, not a definitive diagnosis. Always consult a KVK officer or agronomist for critical decisions.',
@@ -282,9 +283,10 @@ const i18n = {
     'model.provider': 'ಒದಗಿಸುವವರು',
     'model.prediction': 'ಮೇಲ್ ಊಹೆ',
     'model.confidence': 'ವಿಶ್ವಾಸ',
-    'quality.title': 'ಚಿತ್ರ ಗುಣಮಟ್ಟ',
+    'quality.title': 'ಚಿತ್ರದ ಗುಣಮಟ್ಟ',
     'btn.listen': 'ಕೇಳಿ',
-    'btn.review': 'ಪರಿಶೀಲನೆ ಕೋರಿ',
+    'btn.stop_listen': 'ನಿಲ್ಲಿಸಿ',
+    'btn.review': 'ಪರಿಶೀಲನೆಗೆ ವಿನಂತಿಸಿ',
     'btn.history': 'ಇತಿಹಾಸ ನೋಡಿ',
     'caution.text': 'ಇದು ಸ್ಕ್ರೀನಿಂಗ್ ಸಂಕೇತ, ಖಚಿತ ರೋಗನಿರ್ಣಯ ಅಲ್ಲ. ನಿರ್ಣಾಯಕ ನಿರ್ಧಾರಗಳಿಗೆ KVK ಅಧಿಕಾರಿಯನ್ನು ಸಂಪರ್ಕಿಸಿ.',
     'error.title': 'ವೀಕ್ಷಣೆ ಸಿಗಲಿಲ್ಲ',
@@ -331,6 +333,7 @@ const i18n = {
     'model.confidence': 'विश्वास',
     'quality.title': 'छवि गुणवत्ता',
     'btn.listen': 'सुनें',
+    'btn.stop_listen': 'रुकें',
     'btn.review': 'समीक्षा अनुरोध',
     'btn.history': 'इतिहास देखें',
     'caution.text': 'यह एक स्क्रीनिंग संकेत है, निश्चित निदान नहीं। महत्वपूर्ण निर्णयों के लिए KVK अधिकारी से परामर्श करें।',
@@ -517,9 +520,9 @@ function renderResult(data) {
     const topK = model.top_k || [];
     const topKHtml = topK.length > 1
       ? `<div style="margin-top:8px;font-size:0.78rem;color:var(--text-muted)">${
-          topK.slice(0,3).map(([cls,conf]) =>
+          topK.slice(0,3).map(k =>
             `<div style="display:flex;justify-content:space-between;padding:2px 0">
-              <span>${cls}</span><span style="font-weight:700">${Math.round(conf*100)}%</span>
+              <span>${k.display_name || k.class_id || ''}</span><span style="font-weight:700">${Math.round((k.confidence || 0)*100)}%</span>
             </div>`).join('')}</div>` : '';
     const rows = [
       [t('model.provider'),   model.provider || '—'],
@@ -589,18 +592,27 @@ function renderResult(data) {
 /* ══════════════════════════════════════════════════════════════════════
    Actions
 ══════════════════════════════════════════════════════════════════════ */
-function speakResult() {
+async function speakResult() {
   if (!currentResult) return;
+  const btn = document.getElementById('btnListen');
+
+  // If already speaking, stop and reset button
+  if (window._isSpeaking) {
+    if (window._activeAudio) {
+      window._activeAudio.pause();
+      window._activeAudio = null;
+    }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    window._isSpeaking = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span data-i18n="btn.listen">${t('btn.listen')}</span>`; }
+    return;
+  }
+
   const score  = (currentResult.composite_score ?? currentResult.triage_score ?? currentResult.score ?? 0).toFixed(2);
   const status = statusLabel(score);
   const action = currentResult.human_action || currentResult.action || '';
   const rich   = currentResult.rich || {};
   const steps  = (rich.steps_to_take || []).join('. ');
-
-  // Full rich text with all important content
-  const crop   = rich.crop_display    || currentResult.crop || '';
-  const sym    = rich.symptom_display || currentResult.symptom_group || '';
-  const sev    = rich.severity_display|| currentResult.severity || '';
 
   const text = t('speak.text')
     .replace('{score}', score)
@@ -608,20 +620,13 @@ function speakResult() {
     .replace('{action}', action)
     .replace('{steps}', steps || action);
 
-  const btn = document.getElementById('btnListen');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  if (btn) { btn.innerHTML = `🛑 <span data-i18n="btn.stop_listen">${t('btn.stop_listen') || 'Stop'}</span>`; }
+  
+  window._isSpeaking = true;
+  await speakText(text, currentLang);
+  window._isSpeaking = false;
 
-  if (typeof speakText === 'function') {
-    speakText(text, currentLang).finally?.(() => {
-      if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span>${t('btn.listen')}</span>`; }
-    });
-  } else {
-    const utt  = new SpeechSynthesisUtterance(text);
-    utt.lang   = currentLang === 'kn' ? 'kn-IN' : currentLang === 'hi' ? 'hi-IN' : 'en-IN';
-    utt.onend  = () => { if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span>${t('btn.listen')}</span>`; }};
-    speechSynthesis?.cancel();
-    speechSynthesis?.speak(utt);
-  }
+  if (btn) { btn.disabled = false; btn.innerHTML = `🔊 <span data-i18n="btn.listen">${t('btn.listen')}</span>`; }
 }
 
 function requestReview() {
@@ -671,55 +676,25 @@ function loadResult() {
       // Attach rich content from backend
       obs.rich = wrapper.rich || {};
       currentResult = obs;
+      
       overlay.classList.remove('show');
       resultPage.style.display = '';
-      renderResult(obs);
+
+      // Auto-sync UI language to the language the observation was submitted in
+      if (obs.language && obs.language !== currentLang && ['en','kn','hi'].includes(obs.language)) {
+        setLang(obs.language); // This will also call renderResult
+      } else {
+        renderResult(obs);
+      }
+
       const sym = obs.symptom_group || 'leaf_spots';
       loadMarketplace(sym);
     })
     .catch(err => {
       console.warn('loadResult:', err);
-      // Rich fallback mock
-      const mock = {
-        composite_score: 0.61,
-        crop: 'tomato',
-        growth_stage: 'vegetative',
-        symptom_group: 'leaf_spots',
-        severity: 'few',
-        human_action: 'Apply recommended fungicide within 48 hours. Monitor for 7 days. Isolate affected plants.',
-        reasoning: 'High symptom score combined with elevated humidity (84%) and nearby reported cases increases probability of fungal blight. Stage score suggests early infection window — intervention now reduces spread probability.',
-        evidence: { symptom: 0.82, stage: 0.65, weather: 0.78, severity: 0.55, trap: 0.30, nearby: 0.70 },
-        model_result: { provider: 'PlantVillage CNN', top_class: 'Tomato Late Blight', confidence: 0.74 },
-        image_quality: 'good',
-        rich: {
-          crop_display: 'Tomato',
-          stage_display: 'Vegetative',
-          symptom_display: 'Leaf Spots',
-          severity_display: 'A Few Plants',
-          location: 'Peenya, Bengaluru Urban, Karnataka',
-          evidence: { symptom: 0.82, stage: 0.65, weather: 0.78, severity: 0.55, trap: 0.30, nearby: 0.70 },
-          steps_to_take: [
-            '🔍 Isolate affected plants to prevent spread',
-            '✂️ Remove and bag infected leaves immediately — do NOT compost',
-            '💧 Avoid overhead watering — use drip or base watering only',
-            '🧪 Apply Mancozeb 75% WP at 2.5g/L water spray',
-            '📋 Monitor daily for 7 days and record changes',
-            '📞 Contact your local KVK officer if symptoms worsen',
-          ],
-          prevention_tips: [
-            '🌿 Rotate crops every season to break disease cycles',
-            '🌅 Water in the morning — wet leaves overnight cause fungal growth',
-            '📏 Maintain plant spacing (30-45 cm) for good air circulation',
-            '🌱 Use certified disease-free seeds from trusted suppliers',
-            '🪲 Scout your field weekly — check underside of leaves for pests',
-          ],
-        },
-      };
-      currentResult = mock;
+      console.warn('loadResult failed:', err);
       overlay.classList.remove('show');
-      resultPage.style.display = '';
-      renderResult(mock);
-      loadMarketplace('leaf_spots');
+      errorPage.style.display = '';
     });
 }
 

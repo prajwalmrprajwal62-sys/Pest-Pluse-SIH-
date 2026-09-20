@@ -200,38 +200,52 @@ async function speakText(text, lang) {
   if (!text) return;
   const l = lang || currentLanguage;
 
-  // Try backend TTS (gTTS or Bhashini depending on server config)
-  // gTTS handles Kannada and Hindi well — no API key required
-  try {
-    const res = await fetch('/api/v1/voice/tts', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ text, lang: l }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.audio_b64) {
-        const bytes = atob(data.audio_b64);
-        const arr   = new Uint8Array(bytes.length);
-        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-        // gTTS returns mp3, Bhashini returns wav — both work with Audio()
-        const mime  = data.format === 'wav' ? 'audio/wav' : 'audio/mpeg';
-        const blob  = new Blob([arr], { type: mime });
-        const url   = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.play();
-        audio.onended = () => URL.revokeObjectURL(url);
-        return;
-      }
-    }
-  } catch (_) {}
+  if (window._activeAudio) {
+    window._activeAudio.pause();
+    window._activeAudio = null;
+  }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
 
-  // Final fallback: browser Web Speech API (English only works reliably)
-  _webSpeakText(text, l);
+  return new Promise(async (resolve) => {
+    try {
+      const res = await fetch('/api/v1/voice/tts', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ text, lang: l }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.audio_b64) {
+          const bytes = atob(data.audio_b64);
+          const arr   = new Uint8Array(bytes.length);
+          for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+          const mime  = data.format === 'wav' ? 'audio/wav' : 'audio/mpeg';
+          const blob  = new Blob([arr], { type: mime });
+          const url   = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          window._activeAudio = audio;
+          audio.play();
+          audio.onended = () => {
+            URL.revokeObjectURL(url);
+            window._activeAudio = null;
+            resolve();
+          };
+          audio.onerror = resolve;
+          return;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback
+    _webSpeakText(text, l, resolve);
+  });
 }
 
-function _webSpeakText(text, lang) {
-  if (!window.speechSynthesis) return;
+function _webSpeakText(text, lang, resolveCallback) {
+  if (!window.speechSynthesis) {
+    if (resolveCallback) resolveCallback();
+    return;
+  }
   speechSynthesis.cancel();
   const codes = { en:'en-IN', kn:'kn-IN', hi:'hi-IN' };
   const utter = new SpeechSynthesisUtterance(text);
@@ -241,7 +255,9 @@ function _webSpeakText(text, lang) {
        || _voices.find(v => v.lang.startsWith(code.split('-')[0]))
        || _voices.find(v => v.lang.startsWith('en'));
   if (v) { utter.voice = v; utter.lang = v.lang; }
-  else utter.lang = code;
+  else  utter.lang = codes[lang] || 'en-IN';
+  utter.onend = () => { if (resolveCallback) resolveCallback(); };
+  utter.onerror = () => { if (resolveCallback) resolveCallback(); };
   speechSynthesis.speak(utter);
 }
 
