@@ -329,7 +329,7 @@ All weights and thresholds live in `backend/config.py` — adjustable without to
 
 | Role | Member |
 |---|---|
-| Team Lead | Prajwal M R |
+| Team Lead | Tejas Kumar M S |
 | Development | Team Paryavaran |
 
 ---
