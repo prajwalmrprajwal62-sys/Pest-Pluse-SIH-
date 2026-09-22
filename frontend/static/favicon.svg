@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#0f1a12"/>
+
+  <!-- Leaf shape -->
+  <path d="M32 10
+    C20 10, 10 20, 10 34
+    C10 46, 18 54, 30 55
+    C30 55, 30 42, 32 34
+    C34 42, 34 55, 34 55
+    C46 54, 54 46, 54 34
+    C54 20, 44 10, 32 10 Z"
+    fill="#22c55e" opacity="0.92"/>
+
+  <!-- Leaf center vein -->
+  <line x1="32" y1="12" x2="32" y2="55" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Left veins -->
+  <line x1="32" y1="24" x2="18" y2="30" stroke="#16a34a" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <line x1="32" y1="34" x2="16" y2="40" stroke="#16a34a" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <line x1="32" y1="44" x2="20" y2="50" stroke="#16a34a" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Right veins -->
+  <line x1="32" y1="24" x2="46" y2="30" stroke="#16a34a" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <line x1="32" y1="34" x2="48" y2="40" stroke="#16a34a" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  <line x1="32" y1="44" x2="44" y2="50" stroke="#16a34a" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Pulse / EKG line across the leaf (the "Pulse" in PestPulse) -->
+  <polyline
+    points="14,34 20,34 23,26 26,40 29,30 32,34 35,30 38,40 41,26 44,34 50,34"
+    fill="none"
+    stroke="#facc15"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.95"/>
+</svg>
